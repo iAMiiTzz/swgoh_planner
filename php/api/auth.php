@@ -5,7 +5,7 @@ require_once '../config/auth.php';
 header('Content-Type: application/json');
 
 $method = $_SERVER['REQUEST_METHOD'];
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+$action = $_GET['action'] ?? '';
 
 $conn = getDB();
 
@@ -13,8 +13,8 @@ switch ($method) {
     case 'POST':
         if ($action === 'login') {
             $data = json_decode(file_get_contents('php://input'), true);
-            $username = isset($data['username']) ? $data['username'] : '';
-            $password = isset($data['password']) ? $data['password'] : '';
+            $username = $data['username'] ?? '';
+            $password = $data['password'] ?? '';
             
             if (empty($username) || empty($password)) {
                 jsonResponse(['error' => 'Username and password are required'], 400);
@@ -38,7 +38,7 @@ switch ($method) {
             // Set session
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = isset($user['role']) ? $user['role'] : 'user';
+            $_SESSION['role'] = $user['role'] ?? 'user';
             
             jsonResponse([
                 'message' => 'Login successful',
@@ -53,8 +53,8 @@ switch ($method) {
         elseif ($action === 'change-password') {
             requireAuth();
             $data = json_decode(file_get_contents('php://input'), true);
-            $currentPassword = isset($data['currentPassword']) ? $data['currentPassword'] : '';
-            $newPassword = isset($data['newPassword']) ? $data['newPassword'] : '';
+            $currentPassword = $data['currentPassword'] ?? '';
+            $newPassword = $data['newPassword'] ?? '';
             
             if (empty($currentPassword) || empty($newPassword)) {
                 jsonResponse(['error' => 'Current password and new password are required'], 400);
@@ -86,8 +86,8 @@ switch ($method) {
         elseif ($action === 'change-username') {
             requireAuth();
             $data = json_decode(file_get_contents('php://input'), true);
-            $newUsername = isset($data['newUsername']) ? $data['newUsername'] : '';
-            $password = isset($data['password']) ? $data['password'] : '';
+            $newUsername = $data['newUsername'] ?? '';
+            $password = $data['password'] ?? '';
             
             if (empty($newUsername) || empty($password)) {
                 jsonResponse(['error' => 'New username and password are required'], 400);
@@ -137,9 +137,9 @@ switch ($method) {
         elseif ($action === 'update-ally-codes') {
             requireAuth();
             $data = json_decode(file_get_contents('php://input'), true);
-            $main = preg_replace('/[^0-9]/', '', isset($data['main_ally_code']) ? $data['main_ally_code'] : '');
-            $alt = preg_replace('/[^0-9]/', '', isset($data['alt_ally_code']) ? $data['alt_ally_code'] : '');
-            $extra = preg_replace('/[^0-9]/', '', isset($data['extra_ally_code']) ? $data['extra_ally_code'] : '');
+            $main = preg_replace('/[^0-9]/', '', $data['main_ally_code'] ?? '');
+            $alt = preg_replace('/[^0-9]/', '', $data['alt_ally_code'] ?? '');
+            $extra = preg_replace('/[^0-9]/', '', $data['extra_ally_code'] ?? '');
             
             $validateAllyCode = function($code) {
                 if (empty($code)) return true;
@@ -168,9 +168,9 @@ switch ($method) {
             jsonResponse([
                 'message' => 'Ally codes updated successfully',
                 'ally_codes' => [
-                    'main_ally_code' => isset($main) ? $main : '',
-                    'alt_ally_code' => isset($alt) ? $alt : '',
-                    'extra_ally_code' => isset($extra) ? $extra : ''
+                    'main_ally_code' => $main ?? '',
+                    'alt_ally_code' => $alt ?? '',
+                    'extra_ally_code' => $extra ?? ''
                 ]
             ]);
         }
@@ -191,10 +191,10 @@ switch ($method) {
                 'user' => [
                     'id' => $user['id'],
                     'username' => $user['username'],
-                    'role' => isset($user['role']) ? $user['role'] : 'user',
-                    'main_ally_code' => isset($user['main_ally_code']) ? $user['main_ally_code'] : '',
-                    'alt_ally_code' => isset($user['alt_ally_code']) ? $user['alt_ally_code'] : '',
-                    'extra_ally_code' => isset($user['extra_ally_code']) ? $user['extra_ally_code'] : ''
+                    'role' => $user['role'] ?? 'user',
+                    'main_ally_code' => $user['main_ally_code'] ?? '',
+                    'alt_ally_code' => $user['alt_ally_code'] ?? '',
+                    'extra_ally_code' => $user['extra_ally_code'] ?? ''
                 ]
             ]);
         }

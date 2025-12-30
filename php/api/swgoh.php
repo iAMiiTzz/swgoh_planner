@@ -5,13 +5,13 @@ header('Content-Type: application/json');
 requireAuth();
 
 $method = $_SERVER['REQUEST_METHOD'];
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+$action = $_GET['action'] ?? '';
 
 $SWGOH_API_KEY = '3a8ac';
 $SWGOH_API_BASE = 'https://swgoh.gg/api';
 
 if ($method === 'GET' && $action === 'units') {
-    $id = isset($_GET['id']) ? $_GET['id'] : null;
+    $id = $_GET['id'] ?? null;
     
     $url = $id ? "$SWGOH_API_BASE/units/$id/" : "$SWGOH_API_BASE/units/";
     

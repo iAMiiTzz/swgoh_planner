@@ -10,9 +10,9 @@ $error = '';
 
 // Handle user creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_user'])) {
-    $username = isset($_POST['username']) ? $_POST['username'] : '';
-    $password = isset($_POST['password']) ? $_POST['password'] : '';
-    $role = isset($_POST['role']) ? $_POST['role'] : 'user';
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
+    $role = $_POST['role'] ?? 'user';
     
     if (empty($username) || empty($password)) {
         $error = 'Username and password are required';
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_user'])) {
 
 // Handle user deletion
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
-    $userId = (int)(isset($_POST['user_id']) ? $_POST['user_id'] : 0);
+    $userId = (int)($_POST['user_id'] ?? 0);
     $currentUserId = getUserId();
     
     if ($userId === $currentUserId) {

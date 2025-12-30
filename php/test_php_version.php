@@ -10,7 +10,7 @@ echo "PHP 8.1 Compatible: " . (version_compare(phpversion(), '8.1.0', '>=') ? 'Y
 
 // Test null coalescing (using ternary for PHP 5.6 compatibility)
 $test = null;
-$result = isset($test) ? $test : 'default';
+$result = $test ?? 'default';
 echo "Null coalescing (ternary) works: " . ($result === 'default' ? 'Yes' : 'No') . "\n";
 
 echo "Session started: Yes\n";

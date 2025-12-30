@@ -8,12 +8,12 @@ function isAuthenticated() {
 
 // Get current user ID
 function getUserId() {
-    return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+    return $_SESSION['user_id'] ?? null;
 }
 
 // Get current user role
 function getUserRole() {
-    return isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
+    return $_SESSION['role'] ?? 'user';
 }
 
 // Check if user is admin
