@@ -1,0 +1,37 @@
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.admin-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.admin-table th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.admin-table td {
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+    background: #f7fafc;
+}
+

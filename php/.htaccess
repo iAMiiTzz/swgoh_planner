@@ -1,0 +1,21 @@
+# Enable rewrite engine
+RewriteEngine On
+
+# Redirect to login if not authenticated (except for login.php and API)
+RewriteCond %{REQUEST_URI} !^/php/(login\.php|index\.php|api/|assets/)
+RewriteCond %{HTTP_COOKIE} !PHPSESSID
+RewriteRule ^(.*)$ login.php [R=302,L]
+
+# API routes
+RewriteRule ^api/(.*)$ api/$1 [L]
+
+# Default route
+DirectoryIndex index.php
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+

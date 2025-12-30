@@ -1,0 +1,53 @@
+.guild-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.guild-table {
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.guild-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.guild-table th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.guild-table td {
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.guild-table tr:last-child td {
+    border-bottom: none;
+}
+
+.guild-table tbody tr:hover {
+    background: #f7fafc;
+}
+
+.ally-code-badge {
+    display: inline-block;
+    background: #e6fffa;
+    color: #234e52;
+    padding: 4px 12px;
+    border-radius: 6px;
+    margin-right: 8px;
+    font-weight: 500;
+    font-family: monospace;
+}
+
+.no-ally-code {
+    color: #a0aec0;
+    font-style: italic;
+}
+

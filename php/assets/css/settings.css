@@ -1,0 +1,14 @@
+.settings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.settings-container .card {
+    margin-bottom: 24px;
+}
+
+.settings-container h3 {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
