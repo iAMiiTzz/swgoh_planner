@@ -5,7 +5,7 @@ require_once '../config/auth.php';
 header('Content-Type: application/json');
 
 $method = $_SERVER['REQUEST_METHOD'];
-$action = $_GET['action'] ?? '';
+$action = isset($_GET['action']) ? $_GET['action'] : '';
 
 $conn = getDB();
 
@@ -13,8 +13,8 @@ switch ($method) {
     case 'POST':
         if ($action === 'login') {
             $data = json_decode(file_get_contents('php://input'), true);
-            $username = $data['username'] ?? '';
-            $password = $data['password'] ?? '';
+            $username = isset($data['username']) ? $data['username'] : '';
+            $password = isset($data['password']) ? $data['password'] : '';
             
             if (empty($username) || empty($password)) {
                 jsonResponse(['error' => 'Username and password are required'], 400);
@@ -38,14 +38,14 @@ switch ($method) {
             // Set session
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'] ?? 'user';
+            $_SESSION['role'] = isset($user['role']) ? $user['role'] : 'user';
             
             jsonResponse([
                 'message' => 'Login successful',
                 'user' => [
                     'id' => $user['id'],
                     'username' => $user['username'],
-                    'role' => $user['role'] ?? 'user'
+                    'role' => isset($user['role']) ? $user['role'] : 'user'
                 ]
             ]);
         }
