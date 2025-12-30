@@ -9,9 +9,9 @@ import GuildPlanner from './components/GuildPlanner';
 import JourneyTracker from './components/JourneyTracker';
 import RosterPlanner from './components/RosterPlanner';
 import GearPlanner from './components/GearPlanner';
-import SWGOHData from './components/SWGOHData';
 import Settings from './components/Settings';
 import AdminPanel from './components/AdminPanel';
+import ErrorBoundary from './components/ErrorBoundary';
 import { getAuthToken, setAuthToken, removeAuthToken } from './utils/auth';
 import api from './utils/api';
 
@@ -62,42 +62,43 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/homepage" replace />
-            ) : (
-              <Login onLogin={handleLogin} />
-            )
-          }
-        />
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              <Dashboard onLogout={handleLogout} userRole={userRole} />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        >
-          <Route index element={<Navigate to="/homepage" replace />} />
-          <Route path="homepage" element={<Homepage />} />
-          <Route path="dashboard" element={<DashboardHome />} />
-          <Route path="gac" element={<GACPlanner />} />
-          <Route path="guild" element={<GuildPlanner />} />
-          <Route path="journey" element={<JourneyTracker />} />
-          <Route path="roster" element={<RosterPlanner />} />
-          <Route path="gear" element={<GearPlanner />} />
-          <Route path="swgoh" element={<SWGOHData />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="admin" element={<AdminPanel />} />
-        </Route>
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/homepage" replace />
+              ) : (
+                <Login onLogin={handleLogin} />
+              )
+            }
+          />
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                <Dashboard onLogout={handleLogout} userRole={userRole} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          >
+            <Route index element={<Navigate to="/homepage" replace />} />
+            <Route path="homepage" element={<Homepage />} />
+            <Route path="dashboard" element={<DashboardHome />} />
+            <Route path="gac" element={<GACPlanner />} />
+            <Route path="guild" element={<GuildPlanner />} />
+            <Route path="journey" element={<JourneyTracker />} />
+            <Route path="roster" element={<RosterPlanner />} />
+            <Route path="gear" element={<GearPlanner />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="admin" element={<AdminPanel />} />
+          </Route>
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
