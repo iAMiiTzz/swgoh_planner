@@ -78,13 +78,22 @@ function formatAllyCode($code) {
                     <td><?php echo htmlspecialchars($user['username']); ?></td>
                     <td><?php echo htmlspecialchars($user['role']); ?></td>
                     <td>
-                        <?php
-                        $allyCodes = [];
-                        if (!empty($user['main_ally_code'])) $allyCodes[] = formatAllyCode($user['main_ally_code']);
-                        if (!empty($user['alt_ally_code'])) $allyCodes[] = formatAllyCode($user['alt_ally_code']);
-                        if (!empty($user['extra_ally_code'])) $allyCodes[] = formatAllyCode($user['extra_ally_code']);
-                        echo !empty($allyCodes) ? implode(', ', $allyCodes) : 'None';
-                        ?>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <?php
+                            $allyCodes = [];
+                            if (!empty($user['main_ally_code'])) $allyCodes[] = formatAllyCode($user['main_ally_code']);
+                            if (!empty($user['alt_ally_code'])) $allyCodes[] = formatAllyCode($user['alt_ally_code']);
+                            if (!empty($user['extra_ally_code'])) $allyCodes[] = formatAllyCode($user['extra_ally_code']);
+                            
+                            if (!empty($allyCodes)) {
+                                foreach ($allyCodes as $code) {
+                                    echo '<span class="ally-code-badge">' . htmlspecialchars($code) . '</span>';
+                                }
+                            } else {
+                                echo '<span style="color: #a0aec0;">None</span>';
+                            }
+                            ?>
+                        </div>
                     </td>
                     <td><?php echo date('Y-m-d', strtotime($user['created_at'])); ?></td>
                     <td>
