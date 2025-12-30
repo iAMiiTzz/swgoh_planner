@@ -12,8 +12,8 @@ $isAdmin = isAdmin();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SWGOH Planner<?php echo $isAuthenticated ? ' - ' . ucfirst($currentPage) : ''; ?></title>
-    <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/<?php echo $currentPage; ?>.css">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/<?php echo $currentPage; ?>.css">
 </head>
 <body>
 <?php if ($isAuthenticated): ?>

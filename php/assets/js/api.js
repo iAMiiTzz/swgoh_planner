@@ -1,5 +1,5 @@
 // API utility for making requests
-const API_BASE = 'api';
+const API_BASE = '/api';
 
 async function apiRequest(endpoint, options = {}) {
     const url = `${API_BASE}/${endpoint}`;

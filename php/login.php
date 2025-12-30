@@ -3,7 +3,7 @@ require_once 'config/auth.php';
 
 // Redirect if already logged in
 if (isAuthenticated()) {
-    header('Location: homepage.php');
+    header('Location: /homepage.php');
     exit;
 }
 
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'] ?? 'user';
                 
-                header('Location: homepage.php');
+                header('Location: /homepage.php');
                 exit;
             }
         }
@@ -47,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SWGOH Planner - Login</title>
-    <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/login.css">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/login.css">
 </head>
 <body>
 <div class="login-container">

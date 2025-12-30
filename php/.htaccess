@@ -2,8 +2,9 @@
 RewriteEngine On
 
 # Redirect to login if not authenticated (except for login.php and API)
-RewriteCond %{REQUEST_URI} !^/php/(login\.php|index\.php|api/|assets/)
+RewriteCond %{REQUEST_URI} !^/(login\.php|index\.php|api/|assets/)
 RewriteCond %{HTTP_COOKIE} !PHPSESSID
+RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ login.php [R=302,L]
 
 # API routes
@@ -11,6 +12,9 @@ RewriteRule ^api/(.*)$ api/$1 [L]
 
 # Default route
 DirectoryIndex index.php
+
+# Prevent directory listing
+Options -Indexes
 
 # Security headers
 <IfModule mod_headers.c>
