@@ -35,5 +35,3 @@ if ($method === 'GET' && $action === 'units') {
 }
 
 jsonResponse(['error' => 'Invalid action'], 400);
-?>
-

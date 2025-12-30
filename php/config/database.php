@@ -151,5 +151,3 @@ function initializeDatabase() {
 
 // Initialize on first load
 initializeDatabase();
-?>
-

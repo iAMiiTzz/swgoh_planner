@@ -17,5 +17,3 @@ function redirect($path) {
     header('Location: ' . $url);
     exit;
 }
-?>
-

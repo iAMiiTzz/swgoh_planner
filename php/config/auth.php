@@ -47,4 +47,3 @@ function jsonResponse($data, $statusCode = 200) {
     echo json_encode($data);
     exit;
 }
-?>

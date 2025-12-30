@@ -94,5 +94,3 @@ switch ($method) {
 }
 
 jsonResponse(['error' => 'Invalid action'], 400);
-?>
-

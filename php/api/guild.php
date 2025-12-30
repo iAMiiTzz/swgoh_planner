@@ -25,5 +25,3 @@ while ($row = $result->fetch_assoc()) {
 }
 
 jsonResponse($users);
-?>
-
