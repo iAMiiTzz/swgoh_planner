@@ -53,8 +53,8 @@ require_once 'includes/header.php';
         <!-- Offense Section -->
         <div class="gac-section">
             <h3>Offense</h3>
-            <div id="offenseTeams" class="offense-teams">
-                <!-- Offense teams will be generated here -->
+            <div id="offenseTerritories" class="territories-grid">
+                <!-- Territories will be generated here -->
             </div>
         </div>
         
@@ -246,8 +246,8 @@ function updateLayout() {
     // Generate defense territories
     generateDefenseTerritories(config.territories);
     
-    // Generate offense teams
-    generateOffenseTeams(config.maxSquadTeams);
+    // Generate offense territories (same structure as defense)
+    generateOffenseTerritories(config.territories);
     
     // Generate fleet teams
     generateFleetTeams(config.maxFleetTeams);
@@ -280,22 +280,29 @@ function generateDefenseTerritories(territories) {
     });
 }
 
-function generateOffenseTeams(maxTeams) {
-    const container = document.getElementById('offenseTeams');
+function generateOffenseTerritories(territories) {
+    const container = document.getElementById('offenseTerritories');
     container.innerHTML = '';
     
-    for (let i = 0; i < maxTeams; i++) {
-        const teamDiv = document.createElement('div');
-        teamDiv.className = 'team-slot';
-        teamDiv.innerHTML = `
-            <button type="button" class="team-select-button" onclick="openCharacterModal('offense', ${i})">
-                <div class="team-characters-display" id="offense-${i}">
-                    <span class="team-select-placeholder">Select Offense Team ${i + 1}</span>
-                </div>
-            </button>
+    territories.forEach((territory, index) => {
+        const territoryDiv = document.createElement('div');
+        territoryDiv.className = 'territory-card';
+        territoryDiv.innerHTML = `
+            <h4>${territory.name}</h4>
+            <div class="territory-teams" data-territory="${index}">
+                ${Array(territory.maxTeams).fill(0).map((_, i) => `
+                    <div class="team-slot" data-territory="${index}" data-slot="${i}">
+                        <button type="button" class="team-select-button" onclick="openCharacterModal('offense', ${index}, ${i})">
+                            <div class="team-characters-display" id="offense-${index}-${i}">
+                                <span class="team-select-placeholder">Select Team ${i + 1}</span>
+                            </div>
+                        </button>
+                    </div>
+                `).join('')}
+            </div>
         `;
-        container.appendChild(teamDiv);
-    }
+        container.appendChild(territoryDiv);
+    });
 }
 
 function generateFleetTeams(maxTeams) {
@@ -327,9 +334,9 @@ function updateCounts() {
         if (display.querySelector('.character-image')) defenseCount++;
     });
     
-    // Count offense teams
+    // Count offense teams (by territory)
     let offenseCount = 0;
-    document.querySelectorAll('#offenseTeams .team-characters-display').forEach(display => {
+    document.querySelectorAll('#offenseTerritories .team-characters-display').forEach(display => {
         if (display.querySelector('.character-image')) offenseCount++;
     });
     
@@ -371,21 +378,28 @@ function collectPlanData() {
         });
     });
     
-    // Collect offense teams
+    // Collect offense teams by territory
     const offenseTeams = [];
-    for (let i = 0; i < config.maxSquadTeams; i++) {
-        const display = document.getElementById(`offense-${i}`);
-        if (display) {
-            const characters = Array.from(display.querySelectorAll('.character-image')).map(img => ({
-                id: img.dataset.characterId,
-                name: img.dataset.characterName,
-                image: img.src
-            }));
-            if (characters.length > 0) {
-                offenseTeams.push(characters);
+    config.territories.forEach((territory, tIndex) => {
+        const teams = [];
+        for (let i = 0; i < territory.maxTeams; i++) {
+            const display = document.getElementById(`offense-${tIndex}-${i}`);
+            if (display) {
+                const characters = Array.from(display.querySelectorAll('.character-image')).map(img => ({
+                    id: img.dataset.characterId,
+                    name: img.dataset.characterName,
+                    image: img.src
+                }));
+                if (characters.length > 0) {
+                    teams.push(characters);
+                }
             }
         }
-    }
+        offenseTeams.push({
+            territory: territory.name,
+            teams: teams
+        });
+    });
     
     // Collect fleet teams
     const fleetTeams = [];
@@ -532,25 +546,69 @@ function loadPlanData(plan) {
         });
     }
     
-    // Load offense teams
+    // Load offense teams (handle both old format and new territory format)
     if (plan.offense_teams && Array.isArray(plan.offense_teams)) {
-        plan.offense_teams.forEach((team, index) => {
-            const display = document.getElementById(`offense-${index}`);
-            if (display && Array.isArray(team)) {
-                display.innerHTML = '';
-                team.forEach(char => {
-                    const img = document.createElement('img');
-                    img.className = 'character-image';
-                    img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
-                    img.alt = char.name;
-                    img.dataset.characterId = char.id;
-                    img.dataset.characterName = char.name;
-                    img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                    img.title = char.name;
-                    display.appendChild(img);
-                });
-            }
-        });
+        // Check if it's the new territory format
+        if (plan.offense_teams.length > 0 && plan.offense_teams[0].territory) {
+            // New territory-based format
+            plan.offense_teams.forEach((territoryData, tIndex) => {
+                if (territoryData.teams && Array.isArray(territoryData.teams)) {
+                    territoryData.teams.forEach((team, teamIndex) => {
+                        const display = document.getElementById(`offense-${tIndex}-${teamIndex}`);
+                        if (display && Array.isArray(team)) {
+                            display.innerHTML = '';
+                            team.forEach(char => {
+                                const img = document.createElement('img');
+                                img.className = 'character-image';
+                                img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
+                                img.alt = char.name;
+                                img.dataset.characterId = char.id;
+                                img.dataset.characterName = char.name;
+                                img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                                img.title = char.name;
+                                display.appendChild(img);
+                            });
+                        }
+                    });
+                }
+            });
+        } else {
+            // Old format - just array of teams (for backward compatibility)
+            plan.offense_teams.forEach((team, index) => {
+                // Try to find a matching slot in territories
+                const league = document.getElementById('league').value;
+                const format = document.getElementById('format').value;
+                const config = GAC_CONFIG[league][format];
+                let slotIndex = 0;
+                let territoryIndex = 0;
+                
+                // Distribute teams across territories
+                for (let t = 0; t < config.territories.length && slotIndex < index; t++) {
+                    if (slotIndex + config.territories[t].maxTeams > index) {
+                        territoryIndex = t;
+                        break;
+                    }
+                    slotIndex += config.territories[t].maxTeams;
+                }
+                
+                const teamSlotIndex = index - slotIndex;
+                const display = document.getElementById(`offense-${territoryIndex}-${teamSlotIndex}`);
+                if (display && Array.isArray(team)) {
+                    display.innerHTML = '';
+                    team.forEach(char => {
+                        const img = document.createElement('img');
+                        img.className = 'character-image';
+                        img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
+                        img.alt = char.name;
+                        img.dataset.characterId = char.id;
+                        img.dataset.characterName = char.name;
+                        img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                        img.title = char.name;
+                        display.appendChild(img);
+                    });
+                }
+            });
+        }
     }
     
     // Load fleet teams
