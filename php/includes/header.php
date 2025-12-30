@@ -1,5 +1,6 @@
 <?php
-require_once '../config/auth.php';
+// Use absolute path based on this file's location
+require_once __DIR__ . '/../config/auth.php';
 
 $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 $isAuthenticated = isAuthenticated();
