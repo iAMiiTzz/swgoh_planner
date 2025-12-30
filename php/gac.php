@@ -584,32 +584,46 @@ let filteredCharacters = [];
 let selectedCharacters = [];
 
 function openCharacterModal(type, territoryOrSlot, slot = null) {
-    currentTeamContext = { type, territory: territoryOrSlot, slot };
-    selectedCharacters = [];
+    console.log('openCharacterModal called', type, territoryOrSlot, slot);
     
-    // Load existing characters if any
-    const displayId = slot !== null 
-        ? `${type}-${territoryOrSlot}-${slot}`
-        : `${type}-${territoryOrSlot}`;
-    const display = document.getElementById(displayId);
-    if (display) {
-        display.querySelectorAll('.character-image').forEach(img => {
-            selectedCharacters.push({
-                id: img.dataset.characterId,
-                name: img.dataset.characterName,
-                image: img.src
+    try {
+        currentTeamContext = { type, territory: territoryOrSlot, slot };
+        selectedCharacters = [];
+        
+        // Load existing characters if any
+        const displayId = slot !== null 
+            ? `${type}-${territoryOrSlot}-${slot}`
+            : `${type}-${territoryOrSlot}`;
+        const display = document.getElementById(displayId);
+        if (display) {
+            display.querySelectorAll('.character-image').forEach(img => {
+                selectedCharacters.push({
+                    id: img.dataset.characterId,
+                    name: img.dataset.characterName,
+                    image: img.src
+                });
             });
-        });
-    }
-    
-    document.getElementById('characterModal').style.display = 'flex';
-    document.getElementById('characterSearch').value = '';
-    updateSelectedList();
-    
-    if (allCharacters.length === 0) {
-        loadCharacters();
-    } else {
-        displayCharacters();
+        }
+        
+        const modal = document.getElementById('characterModal');
+        if (!modal) {
+            console.error('Character modal not found!');
+            alert('Character selection modal not found. Please refresh the page.');
+            return;
+        }
+        
+        modal.style.display = 'flex';
+        document.getElementById('characterSearch').value = '';
+        updateSelectedList();
+        
+        if (allCharacters.length === 0) {
+            loadCharacters();
+        } else {
+            displayCharacters();
+        }
+    } catch (error) {
+        console.error('Error opening character modal:', error);
+        alert('Error opening character selection: ' + error.message);
     }
 }
 
@@ -621,38 +635,86 @@ function closeCharacterModal() {
 
 function loadCharacters() {
     const grid = document.getElementById('characterGrid');
+    if (!grid) {
+        console.error('Character grid not found!');
+        return;
+    }
+    
     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Loading characters...</div>';
+    
+    console.log('Loading characters from API...');
+    
+    if (typeof api === 'undefined' || !api.swgoh) {
+        console.error('API not available!');
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #e53e3e;">API not loaded. Please refresh the page.</div>';
+        return;
+    }
     
     api.swgoh.getUnits()
         .then(characters => {
+            console.log('Loaded characters:', characters.length);
+            if (!Array.isArray(characters)) {
+                console.error('Characters is not an array:', characters);
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #e53e3e;">Invalid data format received from API.</div>';
+                return;
+            }
             allCharacters = characters;
             filteredCharacters = characters;
             displayCharacters();
         })
         .catch(error => {
+            console.error('Error loading characters:', error);
             grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #e53e3e;">Error loading characters: ${error.message || error}</div>`;
         });
 }
 
 function displayCharacters() {
     const grid = document.getElementById('characterGrid');
-    const searchTerm = document.getElementById('characterSearch').value.toLowerCase();
+    if (!grid) return;
     
-    filteredCharacters = allCharacters.filter(char => 
-        char.name.toLowerCase().includes(searchTerm)
-    );
+    const searchInput = document.getElementById('characterSearch');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    filteredCharacters = allCharacters.filter(char => {
+        const name = char.name || '';
+        const baseId = char.base_id || '';
+        return name.toLowerCase().includes(searchTerm) || baseId.toLowerCase().includes(searchTerm);
+    });
+    
+    if (filteredCharacters.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #718096;">No characters found</div>';
+        return;
+    }
     
     grid.innerHTML = filteredCharacters.map(char => {
-        const imageUrl = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.base_id}.png`;
-        const isSelected = selectedCharacters.some(c => c.id === char.base_id);
+        const charName = char.name || 'Unknown';
+        const baseId = char.base_id || '';
+        const imageUrl = char.image || `https://swgoh.gg/static/img/assets/tex.char_${baseId}.png`;
+        const isSelected = selectedCharacters.some(c => c.id === baseId);
+        
+        // Escape the character data for onclick
+        const charData = JSON.stringify({
+            base_id: baseId,
+            name: charName,
+            image: imageUrl
+        }).replace(/"/g, '&quot;');
         
         return `
-            <div class="character-item ${isSelected ? 'selected' : ''}" onclick="toggleCharacter(${JSON.stringify(char).replace(/"/g, '&quot;')})">
-                <img src="${imageUrl}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/80?text=?'" />
-                <div class="character-name">${char.name}</div>
+            <div class="character-item ${isSelected ? 'selected' : ''}" onclick="toggleCharacterSafe('${baseId}', '${charName.replace(/'/g, "\\'")}', '${imageUrl.replace(/'/g, "\\'")}')">
+                <img src="${imageUrl}" alt="${charName}" onerror="this.src='https://via.placeholder.com/80?text=?'" />
+                <div class="character-name">${charName}</div>
             </div>
         `;
     }).join('');
+}
+
+function toggleCharacterSafe(baseId, name, image) {
+    const character = {
+        base_id: baseId,
+        name: name,
+        image: image
+    };
+    toggleCharacter(character);
 }
 
 function toggleCharacter(character) {
@@ -719,15 +781,31 @@ function confirmCharacterSelection() {
     closeCharacterModal();
 }
 
-// Search functionality
-document.getElementById('characterSearch').addEventListener('input', displayCharacters);
-
-// Close modal when clicking outside
-document.getElementById('characterModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeCharacterModal();
+// Search functionality - wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('characterSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', displayCharacters);
+    }
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('characterModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCharacterModal();
+            }
+        });
     }
 });
+
+// Make functions globally accessible
+window.openCharacterModal = openCharacterModal;
+window.closeCharacterModal = closeCharacterModal;
+window.confirmCharacterSelection = confirmCharacterSelection;
+window.toggleCharacter = toggleCharacter;
+window.toggleCharacterSafe = toggleCharacterSafe;
+window.removeSelectedCharacter = removeSelectedCharacter;
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
