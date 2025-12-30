@@ -612,7 +612,16 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
             return;
         }
         
+        console.log('Opening modal...');
         modal.style.display = 'flex';
+        modal.style.zIndex = '1000';
+        
+        // Force modal to be visible
+        setTimeout(() => {
+            if (modal.style.display !== 'flex') {
+                modal.style.display = 'flex';
+            }
+        }, 100);
         document.getElementById('characterSearch').value = '';
         updateSelectedList();
         
@@ -651,13 +660,34 @@ function loadCharacters() {
     }
     
     api.swgoh.getUnits()
-        .then(characters => {
-            console.log('Loaded characters:', characters.length);
-            if (!Array.isArray(characters)) {
-                console.error('Characters is not an array:', characters);
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #e53e3e;">Invalid data format received from API.</div>';
+        .then(response => {
+            console.log('API Response:', response);
+            
+            // Handle different response formats
+            let characters = [];
+            if (Array.isArray(response)) {
+                characters = response;
+            } else if (response && typeof response === 'object') {
+                // Check if it's an object with a data property
+                if (response.data && Array.isArray(response.data)) {
+                    characters = response.data;
+                } else if (response.units && Array.isArray(response.units)) {
+                    characters = response.units;
+                } else if (response.results && Array.isArray(response.results)) {
+                    characters = response.results;
+                } else {
+                    // Try to convert object values to array
+                    characters = Object.values(response).filter(item => item && typeof item === 'object');
+                }
+            }
+            
+            if (!Array.isArray(characters) || characters.length === 0) {
+                console.error('Could not parse characters from response:', response);
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #e53e3e;">Invalid data format received from API. Check console for details.</div>';
                 return;
             }
+            
+            console.log('Parsed characters:', characters.length);
             allCharacters = characters;
             filteredCharacters = characters;
             displayCharacters();
@@ -670,14 +700,18 @@ function loadCharacters() {
 
 function displayCharacters() {
     const grid = document.getElementById('characterGrid');
-    if (!grid) return;
+    if (!grid) {
+        console.error('Character grid not found in displayCharacters');
+        return;
+    }
     
     const searchInput = document.getElementById('characterSearch');
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     
     filteredCharacters = allCharacters.filter(char => {
-        const name = char.name || '';
-        const baseId = char.base_id || '';
+        if (!char) return false;
+        const name = char.name || char.unit_name || '';
+        const baseId = char.base_id || char.id || '';
         return name.toLowerCase().includes(searchTerm) || baseId.toLowerCase().includes(searchTerm);
     });
     
@@ -687,20 +721,20 @@ function displayCharacters() {
     }
     
     grid.innerHTML = filteredCharacters.map(char => {
-        const charName = char.name || 'Unknown';
-        const baseId = char.base_id || '';
-        const imageUrl = char.image || `https://swgoh.gg/static/img/assets/tex.char_${baseId}.png`;
+        if (!char) return '';
+        
+        const charName = char.name || char.unit_name || 'Unknown';
+        const baseId = char.base_id || char.id || '';
+        const imageUrl = char.image || char.portrait || `https://swgoh.gg/static/img/assets/tex.char_${baseId}.png`;
         const isSelected = selectedCharacters.some(c => c.id === baseId);
         
-        // Escape the character data for onclick
-        const charData = JSON.stringify({
-            base_id: baseId,
-            name: charName,
-            image: imageUrl
-        }).replace(/"/g, '&quot;');
+        // Escape single quotes for onclick
+        const safeName = charName.replace(/'/g, "\\'");
+        const safeImage = imageUrl.replace(/'/g, "\\'");
+        const safeId = baseId.replace(/'/g, "\\'");
         
         return `
-            <div class="character-item ${isSelected ? 'selected' : ''}" onclick="toggleCharacterSafe('${baseId}', '${charName.replace(/'/g, "\\'")}', '${imageUrl.replace(/'/g, "\\'")}')">
+            <div class="character-item ${isSelected ? 'selected' : ''}" onclick="toggleCharacterSafe('${safeId}', '${safeName}', '${safeImage}')">
                 <img src="${imageUrl}" alt="${charName}" onerror="this.src='https://via.placeholder.com/80?text=?'" />
                 <div class="character-name">${charName}</div>
             </div>
