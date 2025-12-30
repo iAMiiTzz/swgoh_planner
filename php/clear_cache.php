@@ -9,7 +9,7 @@ if (function_exists('opcache_reset')) {
 
 // Test ?? operator (using ternary for compatibility)
 $test = null;
-$result = isset($test) ? $test : 'default';
+$result = $test ?? 'default';
 echo "✓ Null coalescing test: " . ($result === 'default' ? 'PASSED' : 'FAILED') . "<br>";
 
 // Test PHP version

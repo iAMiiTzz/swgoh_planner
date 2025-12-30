@@ -45,7 +45,7 @@ switch ($method) {
                 'user' => [
                     'id' => $user['id'],
                     'username' => $user['username'],
-                    'role' => isset($user['role']) ? $user['role'] : 'user'
+                    'role' => $user['role'] ?? 'user'
                 ]
             ]);
         }
