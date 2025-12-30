@@ -8,34 +8,7 @@ $conn = getDB();
 $message = '';
 $error = '';
 
-// Handle user creation
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_user'])) {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $role = $_POST['role'] ?? 'user';
-    
-    if (empty($username) || empty($password)) {
-        $error = 'Username and password are required';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters';
-    } else {
-        // Check if user exists
-        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $error = 'Username already exists';
-        } else {
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $username, $hashedPassword, $role);
-            $stmt->execute();
-            $message = 'User created successfully';
-        }
-    }
-}
+// Note: User creation is now handled via API (modal)
 
 // Handle user deletion
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
@@ -71,38 +44,18 @@ function formatAllyCode($code) {
 }
 ?>
 <div class="admin-container">
-    <h2>Admin Panel</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Admin Panel</h2>
+        <button onclick="openCreateUserModal()" class="btn-primary">+ Create New User</button>
+    </div>
     
     <?php if ($message): ?>
-    <div class="success-message"><?php echo htmlspecialchars($message); ?></div>
+    <div class="success-message" id="successMessage"><?php echo htmlspecialchars($message); ?></div>
     <?php endif; ?>
     
     <?php if ($error): ?>
-    <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
+    <div class="error-message" id="errorMessage"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
-    
-    <!-- Create User -->
-    <div class="card">
-        <h3>Create New User</h3>
-        <form method="POST">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required minlength="6">
-            </div>
-            <div class="form-group">
-                <label>Role</label>
-                <select name="role">
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </div>
-            <button type="submit" name="create_user" class="btn-primary">Create User</button>
-        </form>
-    </div>
     
     <!-- Users List -->
     <div class="card">
@@ -150,5 +103,84 @@ function formatAllyCode($code) {
         </table>
     </div>
 </div>
+
+<!-- Create User Modal -->
+<div id="createUserModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Create New User</h3>
+            <button class="modal-close" onclick="closeCreateUserModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="createUserForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="newUsername" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="newPassword" name="password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="newRole" name="role">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div id="createUserError" class="error-message" style="display: none;"></div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeCreateUserModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openCreateUserModal() {
+    document.getElementById('createUserModal').style.display = 'flex';
+    document.getElementById('createUserForm').reset();
+    document.getElementById('createUserError').style.display = 'none';
+}
+
+function closeCreateUserModal() {
+    document.getElementById('createUserModal').style.display = 'none';
+    document.getElementById('createUserForm').reset();
+    document.getElementById('createUserError').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('createUserModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCreateUserModal();
+    }
+});
+
+// Handle form submission
+document.getElementById('createUserForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('newUsername').value;
+    const password = document.getElementById('newPassword').value;
+    const role = document.getElementById('newRole').value;
+    const errorDiv = document.getElementById('createUserError');
+    
+    errorDiv.style.display = 'none';
+    
+    try {
+        const result = await api.admin.createUser({ username, password, role });
+        showSuccess(result.message || 'User created successfully');
+        closeCreateUserModal();
+        // Reload page to show new user
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        errorDiv.textContent = error.message || 'Failed to create user';
+        errorDiv.style.display = 'block';
+    }
+});
+</script>
+
 <?php require_once 'includes/footer.php'; ?>
 
