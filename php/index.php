@@ -1,11 +1,11 @@
 <?php
 require_once 'config/auth.php';
+require_once 'config/base_url.php';
 
 if (isAuthenticated()) {
-    header('Location: /homepage.php');
+    redirect('/homepage.php');
 } else {
-    header('Location: /login.php');
+    redirect('/login.php');
 }
-exit;
 ?>
 

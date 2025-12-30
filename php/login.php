@@ -1,10 +1,10 @@
 <?php
 require_once 'config/auth.php';
+require_once 'config/base_url.php';
 
 // Redirect if already logged in
 if (isAuthenticated()) {
-    header('Location: /homepage.php');
-    exit;
+    redirect('/homepage.php');
 }
 
 $error = '';
@@ -30,8 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'] ?? 'user';
                 
-                header('Location: /homepage.php');
-                exit;
+                redirect('/homepage.php');
             }
         }
         
@@ -60,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
         
-        <form method="POST" action="login.php">
+        <form method="POST" action="/login.php">
             <div class="form-group">
                 <label>Username</label>
                 <input
