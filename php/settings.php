@@ -11,8 +11,8 @@ $error = '';
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['change_password'])) {
-        $currentPassword = $_POST['current_password'] ?? '';
-        $newPassword = $_POST['new_password'] ?? '';
+        $currentPassword = isset($_POST['current_password']) ? $_POST['current_password'] : '';
+        $newPassword = isset($_POST['new_password']) ? $_POST['new_password'] : '';
         
         if (empty($currentPassword) || empty($newPassword)) {
             $error = 'Both passwords are required';
@@ -38,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (isset($_POST['change_username'])) {
-        $newUsername = $_POST['new_username'] ?? '';
-        $password = $_POST['password'] ?? '';
+        $newUsername = isset($_POST['new_username']) ? $_POST['new_username'] : '';
+        $password = isset($_POST['password']) ? $_POST['password'] : '';
         
         if (empty($newUsername) || empty($password)) {
             $error = 'New username and password are required';
@@ -73,9 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (isset($_POST['update_ally_codes'])) {
-        $main = preg_replace('/[^0-9]/', '', $_POST['main_ally_code'] ?? '');
-        $alt = preg_replace('/[^0-9]/', '', $_POST['alt_ally_code'] ?? '');
-        $extra = preg_replace('/[^0-9]/', '', $_POST['extra_ally_code'] ?? '');
+        $main = preg_replace('/[^0-9]/', '', isset($_POST['main_ally_code']) ? $_POST['main_ally_code'] : '');
+        $alt = preg_replace('/[^0-9]/', '', isset($_POST['alt_ally_code']) ? $_POST['alt_ally_code'] : '');
+        $extra = preg_replace('/[^0-9]/', '', isset($_POST['extra_ally_code']) ? $_POST['extra_ally_code'] : '');
         
         $main = empty($main) ? null : (strlen($main) === 9 ? $main : null);
         $alt = empty($alt) ? null : (strlen($alt) === 9 ? $alt : null);
@@ -128,15 +128,15 @@ function formatAllyCode($code) {
         <form method="POST">
             <div class="form-group">
                 <label>Main Account Ally Code</label>
-                <input type="text" name="main_ally_code" value="<?php echo formatAllyCode($user['main_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
+                <input type="text" name="main_ally_code" value="<?php echo formatAllyCode(isset($user['main_ally_code']) ? $user['main_ally_code'] : ''); ?>" placeholder="123-456-789" maxlength="11">
             </div>
             <div class="form-group">
                 <label>Alt Account Ally Code</label>
-                <input type="text" name="alt_ally_code" value="<?php echo formatAllyCode($user['alt_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
+                <input type="text" name="alt_ally_code" value="<?php echo formatAllyCode(isset($user['alt_ally_code']) ? $user['alt_ally_code'] : ''); ?>" placeholder="123-456-789" maxlength="11">
             </div>
             <div class="form-group">
                 <label>Extra Ally Code</label>
-                <input type="text" name="extra_ally_code" value="<?php echo formatAllyCode($user['extra_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
+                <input type="text" name="extra_ally_code" value="<?php echo formatAllyCode(isset($user['extra_ally_code']) ? $user['extra_ally_code'] : ''); ?>" placeholder="123-456-789" maxlength="11">
             </div>
             <button type="submit" name="update_ally_codes" class="btn-primary">Update Ally Codes</button>
         </form>

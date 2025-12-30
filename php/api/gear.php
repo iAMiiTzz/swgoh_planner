@@ -11,7 +11,7 @@ $userId = getUserId();
 
 switch ($method) {
     case 'GET':
-        $id = $_GET['id'] ?? null;
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
         
         if ($id) {
             $stmt = $conn->prepare("SELECT * FROM gear_farming WHERE id = ? AND user_id = ?");
@@ -41,19 +41,19 @@ switch ($method) {
         
     case 'POST':
         $data = json_decode(file_get_contents('php://input'), true);
-        $gearName = $data['gear_name'] ?? '';
-        $targetQuantity = $data['target_quantity'] ?? 0;
+        $gearName = isset($data['gear_name']) ? $data['gear_name'] : '';
+        $targetQuantity = isset($data['target_quantity']) ? $data['target_quantity'] : 0;
         
         if (empty($gearName) || empty($targetQuantity)) {
             jsonResponse(['error' => 'Gear name and target quantity are required'], 400);
         }
         
-        $characterName = $data['character_name'] ?? null;
-        $gearType = $data['gear_type'] ?? 'gear';
-        $currentQuantity = $data['current_quantity'] ?? 0;
-        $priority = $data['priority'] ?? 5;
-        $farmingLocation = $data['farming_location'] ?? null;
-        $notes = $data['notes'] ?? '';
+        $characterName = isset($data['character_name']) ? $data['character_name'] : null;
+        $gearType = isset($data['gear_type']) ? $data['gear_type'] : 'gear';
+        $currentQuantity = isset($data['current_quantity']) ? $data['current_quantity'] : 0;
+        $priority = isset($data['priority']) ? $data['priority'] : 5;
+        $farmingLocation = isset($data['farming_location']) ? $data['farming_location'] : null;
+        $notes = isset($data['notes']) ? $data['notes'] : '';
         
         $stmt = $conn->prepare("INSERT INTO gear_farming (user_id, character_name, gear_name, gear_type, target_quantity, current_quantity, priority, farming_location, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("isssiiiss", $userId, $characterName, $gearName, $gearType, $targetQuantity, $currentQuantity, $priority, $farmingLocation, $notes);
@@ -63,20 +63,20 @@ switch ($method) {
         break;
         
     case 'PUT':
-        $id = $_GET['id'] ?? null;
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
         if (!$id) {
             jsonResponse(['error' => 'Gear item ID is required'], 400);
         }
         
         $data = json_decode(file_get_contents('php://input'), true);
-        $characterName = $data['character_name'] ?? null;
-        $gearName = $data['gear_name'] ?? '';
-        $gearType = $data['gear_type'] ?? 'gear';
-        $targetQuantity = $data['target_quantity'] ?? 0;
-        $currentQuantity = $data['current_quantity'] ?? 0;
-        $priority = $data['priority'] ?? 5;
-        $farmingLocation = $data['farming_location'] ?? null;
-        $notes = $data['notes'] ?? '';
+        $characterName = isset($data['character_name']) ? $data['character_name'] : null;
+        $gearName = isset($data['gear_name']) ? $data['gear_name'] : '';
+        $gearType = isset($data['gear_type']) ? $data['gear_type'] : 'gear';
+        $targetQuantity = isset($data['target_quantity']) ? $data['target_quantity'] : 0;
+        $currentQuantity = isset($data['current_quantity']) ? $data['current_quantity'] : 0;
+        $priority = isset($data['priority']) ? $data['priority'] : 5;
+        $farmingLocation = isset($data['farming_location']) ? $data['farming_location'] : null;
+        $notes = isset($data['notes']) ? $data['notes'] : '';
         
         $stmt = $conn->prepare("UPDATE gear_farming SET character_name = ?, gear_name = ?, gear_type = ?, target_quantity = ?, current_quantity = ?, priority = ?, farming_location = ?, notes = ? WHERE id = ? AND user_id = ?");
         $stmt->bind_param("sssiiissii", $characterName, $gearName, $gearType, $targetQuantity, $currentQuantity, $priority, $farmingLocation, $notes, $id, $userId);
@@ -90,7 +90,7 @@ switch ($method) {
         break;
         
     case 'DELETE':
-        $id = $_GET['id'] ?? null;
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
         if (!$id) {
             jsonResponse(['error' => 'Gear item ID is required'], 400);
         }

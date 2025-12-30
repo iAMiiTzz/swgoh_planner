@@ -11,7 +11,7 @@ $userId = getUserId();
 
 switch ($method) {
     case 'GET':
-        $id = $_GET['id'] ?? null;
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
         
         if ($id) {
             $stmt = $conn->prepare("SELECT * FROM journey_tracker WHERE id = ? AND user_id = ?");
@@ -41,17 +41,17 @@ switch ($method) {
         
     case 'POST':
         $data = json_decode(file_get_contents('php://input'), true);
-        $journeyName = $data['journey_name'] ?? '';
-        $characterName = $data['character_name'] ?? '';
-        $totalStages = $data['total_stages'] ?? 0;
+        $journeyName = isset($data['journey_name']) ? $data['journey_name'] : '';
+        $characterName = isset($data['character_name']) ? $data['character_name'] : '';
+        $totalStages = isset($data['total_stages']) ? $data['total_stages'] : 0;
         
         if (empty($journeyName) || empty($characterName) || empty($totalStages)) {
             jsonResponse(['error' => 'Journey name, character name, and total stages are required'], 400);
         }
         
-        $currentStage = $data['current_stage'] ?? 0;
+        $currentStage = isset($data['current_stage']) ? $data['current_stage'] : 0;
         $unlocked = isset($data['unlocked']) ? (int)$data['unlocked'] : 0;
-        $notes = $data['notes'] ?? '';
+        $notes = isset($data['notes']) ? $data['notes'] : '';
         
         $stmt = $conn->prepare("INSERT INTO journey_tracker (user_id, journey_name, character_name, current_stage, total_stages, unlocked, notes) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("issiiis", $userId, $journeyName, $characterName, $currentStage, $totalStages, $unlocked, $notes);
@@ -61,18 +61,18 @@ switch ($method) {
         break;
         
     case 'PUT':
-        $id = $_GET['id'] ?? null;
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
         if (!$id) {
             jsonResponse(['error' => 'Journey ID is required'], 400);
         }
         
         $data = json_decode(file_get_contents('php://input'), true);
-        $journeyName = $data['journey_name'] ?? '';
-        $characterName = $data['character_name'] ?? '';
-        $currentStage = $data['current_stage'] ?? 0;
-        $totalStages = $data['total_stages'] ?? 0;
+        $journeyName = isset($data['journey_name']) ? $data['journey_name'] : '';
+        $characterName = isset($data['character_name']) ? $data['character_name'] : '';
+        $currentStage = isset($data['current_stage']) ? $data['current_stage'] : 0;
+        $totalStages = isset($data['total_stages']) ? $data['total_stages'] : 0;
         $unlocked = isset($data['unlocked']) ? (int)$data['unlocked'] : 0;
-        $notes = $data['notes'] ?? '';
+        $notes = isset($data['notes']) ? $data['notes'] : '';
         
         $stmt = $conn->prepare("UPDATE journey_tracker SET journey_name = ?, character_name = ?, current_stage = ?, total_stages = ?, unlocked = ?, notes = ? WHERE id = ? AND user_id = ?");
         $stmt->bind_param("ssiiisii", $journeyName, $characterName, $currentStage, $totalStages, $unlocked, $notes, $id, $userId);
@@ -86,7 +86,7 @@ switch ($method) {
         break;
         
     case 'DELETE':
-        $id = $_GET['id'] ?? null;
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
         if (!$id) {
             jsonResponse(['error' => 'Journey ID is required'], 400);
         }

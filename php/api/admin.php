@@ -28,9 +28,9 @@ switch ($method) {
     case 'POST':
         if (isset($_GET['action']) && $_GET['action'] === 'users') {
             $data = json_decode(file_get_contents('php://input'), true);
-            $username = $data['username'] ?? '';
-            $password = $data['password'] ?? '';
-            $role = $data['role'] ?? 'user';
+            $username = isset($data['username']) ? $data['username'] : '';
+            $password = isset($data['password']) ? $data['password'] : '';
+            $role = isset($data['role']) ? $data['role'] : 'user';
             
             if (empty($username) || empty($password)) {
                 jsonResponse(['error' => 'Username and password are required'], 400);
@@ -67,7 +67,7 @@ switch ($method) {
         
     case 'DELETE':
         if (isset($_GET['action']) && $_GET['action'] === 'users') {
-            $id = $_GET['id'] ?? null;
+            $id = isset($_GET['id']) ? $_GET['id'] : null;
             
             if (!$id) {
                 jsonResponse(['error' => 'User ID is required'], 400);

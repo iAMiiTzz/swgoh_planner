@@ -5,7 +5,7 @@ echo "PHP 8.1 Compatible: " . (version_compare(phpversion(), '8.1.0', '>=') ? 'Y
 
 // Test ?? operator
 $test = null;
-$result = $test ?? 'default';
+$result = isset($test) ? $test : 'default';
 echo "?? operator works: " . ($result === 'default' ? 'Yes' : 'No') . "\n";
 
 // Test session

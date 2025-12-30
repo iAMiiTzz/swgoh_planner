@@ -11,7 +11,7 @@ $userId = getUserId();
 
 switch ($method) {
     case 'GET':
-        $id = $_GET['id'] ?? null;
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
         
         if ($id) {
             $stmt = $conn->prepare("SELECT * FROM roster WHERE id = ? AND user_id = ?");
@@ -41,18 +41,18 @@ switch ($method) {
         
     case 'POST':
         $data = json_decode(file_get_contents('php://input'), true);
-        $characterName = $data['character_name'] ?? '';
+        $characterName = isset($data['character_name']) ? $data['character_name'] : '';
         
         if (empty($characterName)) {
             jsonResponse(['error' => 'Character name is required'], 400);
         }
         
-        $starLevel = $data['star_level'] ?? 1;
-        $gearLevel = $data['gear_level'] ?? 1;
-        $relicLevel = $data['relic_level'] ?? 0;
-        $zetaCount = $data['zeta_count'] ?? 0;
-        $omicronCount = $data['omicron_count'] ?? 0;
-        $notes = $data['notes'] ?? '';
+        $starLevel = isset($data['star_level']) ? $data['star_level'] : 1;
+        $gearLevel = isset($data['gear_level']) ? $data['gear_level'] : 1;
+        $relicLevel = isset($data['relic_level']) ? $data['relic_level'] : 0;
+        $zetaCount = isset($data['zeta_count']) ? $data['zeta_count'] : 0;
+        $omicronCount = isset($data['omicron_count']) ? $data['omicron_count'] : 0;
+        $notes = isset($data['notes']) ? $data['notes'] : '';
         
         // Check if character exists
         $stmt = $conn->prepare("SELECT id FROM roster WHERE user_id = ? AND character_name = ?");
@@ -77,19 +77,19 @@ switch ($method) {
         break;
         
     case 'PUT':
-        $id = $_GET['id'] ?? null;
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
         if (!$id) {
             jsonResponse(['error' => 'Character ID is required'], 400);
         }
         
         $data = json_decode(file_get_contents('php://input'), true);
-        $characterName = $data['character_name'] ?? '';
-        $starLevel = $data['star_level'] ?? 1;
-        $gearLevel = $data['gear_level'] ?? 1;
-        $relicLevel = $data['relic_level'] ?? 0;
-        $zetaCount = $data['zeta_count'] ?? 0;
-        $omicronCount = $data['omicron_count'] ?? 0;
-        $notes = $data['notes'] ?? '';
+        $characterName = isset($data['character_name']) ? $data['character_name'] : '';
+        $starLevel = isset($data['star_level']) ? $data['star_level'] : 1;
+        $gearLevel = isset($data['gear_level']) ? $data['gear_level'] : 1;
+        $relicLevel = isset($data['relic_level']) ? $data['relic_level'] : 0;
+        $zetaCount = isset($data['zeta_count']) ? $data['zeta_count'] : 0;
+        $omicronCount = isset($data['omicron_count']) ? $data['omicron_count'] : 0;
+        $notes = isset($data['notes']) ? $data['notes'] : '';
         
         $stmt = $conn->prepare("UPDATE roster SET character_name = ?, star_level = ?, gear_level = ?, relic_level = ?, zeta_count = ?, omicron_count = ?, notes = ? WHERE id = ? AND user_id = ?");
         $stmt->bind_param("siiiiiisii", $characterName, $starLevel, $gearLevel, $relicLevel, $zetaCount, $omicronCount, $notes, $id, $userId);
@@ -103,7 +103,7 @@ switch ($method) {
         break;
         
     case 'DELETE':
-        $id = $_GET['id'] ?? null;
+        $id = isset($_GET['id']) ? $_GET['id'] : null;
         if (!$id) {
             jsonResponse(['error' => 'Character ID is required'], 400);
         }

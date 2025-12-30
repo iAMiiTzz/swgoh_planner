@@ -10,8 +10,8 @@ if (isAuthenticated()) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $username = isset($_POST['username']) ? $_POST['username'] : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
     
     if (!empty($username) && !empty($password)) {
         $conn = require 'config/database.php';
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
-                $_SESSION['role'] = $user['role'] ?? 'user';
+                $_SESSION['role'] = isset($user['role']) ? $user['role'] : 'user';
                 
                 redirect('/homepage.php');
             }
