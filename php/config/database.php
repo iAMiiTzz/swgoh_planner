@@ -1,5 +1,6 @@
 <?php
 // Database Configuration
+// PHP 8.1+ Compatible
 define('DB_HOST', '167.99.181.177');
 define('DB_NAME', 'bmislandhost_plan_swgoh');
 define('DB_USER', 'bmislandhost_bradley');
@@ -14,6 +15,7 @@ function getDB() {
             $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
             
             if ($conn->connect_error) {
+                error_log("Database connection failed: " . $conn->connect_error);
                 die("Connection failed: " . $conn->connect_error);
             }
             
