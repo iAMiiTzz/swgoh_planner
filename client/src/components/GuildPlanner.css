@@ -1,0 +1,146 @@
+.guild-planner-container {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.guild-planner-container h2 {
+  color: #667eea;
+  margin-bottom: 10px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 1.1rem;
+}
+
+.search-section {
+  margin-bottom: 30px;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 500px;
+  padding: 14px 18px;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  font-size: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: white;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.user-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
+  will-change: transform;
+}
+
+.user-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+}
+
+.user-header h3 {
+  color: #333;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+}
+
+.ally-codes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ally-code-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 10px;
+  border-left: 3px solid #667eea;
+}
+
+.ally-code-label {
+  font-weight: 600;
+  color: #667eea;
+  min-width: 50px;
+  font-size: 0.9rem;
+}
+
+.ally-code-value {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+  user-select: all;
+}
+
+.ally-code-value:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.ally-code-value:active {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+.no-ally-codes {
+  color: #999;
+  font-style: italic;
+  padding: 10px;
+  text-align: center;
+}
+
+.no-users-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 60px;
+  color: #667eea;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .guild-planner-container {
+    padding: 25px;
+  }
+
+  .users-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
