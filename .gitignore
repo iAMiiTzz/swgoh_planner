@@ -11,3 +11,12 @@ client/build/
 .env.production
 .env.development
 
+# Optional: Uncomment if you want to ignore Node.js version
+# client/
+# server/
+# package.json
+# package-lock.json
+# render.yaml
+# verify-build.js
+# ecosystem.config.js
+
