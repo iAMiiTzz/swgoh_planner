@@ -11,6 +11,10 @@ client/build/
 .env.production
 .env.development
 
+# Documentation - don't upload to server or GitHub
+php/DONT UPLOAD/
+**/DONT UPLOAD/
+
 # Optional: Uncomment if you want to ignore Node.js version
 # client/
 # server/
