@@ -123,6 +123,26 @@ function formatAllyCode($code) {
     <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
     
+    <!-- Ally Codes Section -->
+    <div class="card">
+        <h3>Ally Codes</h3>
+        <form method="POST">
+            <div class="form-group">
+                <label>Main Account Ally Code</label>
+                <input type="text" name="main_ally_code" value="<?php echo formatAllyCode($user['main_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
+            </div>
+            <div class="form-group">
+                <label>Alt Account Ally Code</label>
+                <input type="text" name="alt_ally_code" value="<?php echo formatAllyCode($user['alt_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
+            </div>
+            <div class="form-group">
+                <label>Extra Ally Code</label>
+                <input type="text" name="extra_ally_code" value="<?php echo formatAllyCode($user['extra_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
+            </div>
+            <button type="submit" name="update_ally_codes" class="btn-primary">Update Ally Codes</button>
+        </form>
+    </div>
+    
     <!-- Change Username and Password Side by Side -->
     <div style="display: flex; gap: 20px; margin-bottom: 20px;">
         <!-- Change Username -->
@@ -156,26 +176,6 @@ function formatAllyCode($code) {
                 <button type="submit" name="change_password" class="btn-primary">Change Password</button>
             </form>
         </div>
-    </div>
-    
-    <!-- Ally Codes Section -->
-    <div class="card">
-        <h3>Ally Codes</h3>
-        <form method="POST">
-            <div class="form-group">
-                <label>Main Account Ally Code</label>
-                <input type="text" name="main_ally_code" value="<?php echo formatAllyCode($user['main_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
-            </div>
-            <div class="form-group">
-                <label>Alt Account Ally Code</label>
-                <input type="text" name="alt_ally_code" value="<?php echo formatAllyCode($user['alt_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
-            </div>
-            <div class="form-group">
-                <label>Extra Ally Code</label>
-                <input type="text" name="extra_ally_code" value="<?php echo formatAllyCode($user['extra_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
-            </div>
-            <button type="submit" name="update_ally_codes" class="btn-primary">Update Ally Codes</button>
-        </form>
     </div>
 </div>
 <?php require_once 'includes/footer.php'; ?>
