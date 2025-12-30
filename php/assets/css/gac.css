@@ -117,6 +117,104 @@
     }
 }
 
+.team-select-button {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px;
+    background: #f7fafc;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.team-select-button:hover {
+    background: #edf2f7;
+    border-color: var(--primary-color);
+}
+
+.team-characters-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    min-height: 60px;
+}
+
+.team-select-placeholder {
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.character-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.character-image:hover {
+    transform: scale(1.1);
+    border-color: var(--primary-color);
+}
+
+/* Character Selection Modal Styles */
+.character-item {
+    text-align: center;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.character-item:hover {
+    background: #f7fafc;
+    border-color: var(--primary-color);
+}
+
+.character-item.selected {
+    background: #e6f3ff;
+    border-color: var(--primary-color);
+}
+
+.character-item img {
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    object-fit: cover;
+    margin-bottom: 5px;
+}
+
+.character-item .character-name {
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+.selected-character {
+    display: flex;
+    align-items: center;
+    background: #f7fafc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 0.85rem;
+}
+
+.selected-character img {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    margin-right: 8px;
+    object-fit: cover;
+}
+
 @media (max-width: 768px) {
     .gac-controls {
         flex-direction: column;
@@ -130,6 +228,11 @@
     
     .gac-controls button {
         width: 100%;
+    }
+    
+    .character-item img {
+        width: 60px;
+        height: 60px;
     }
 }
 
