@@ -65,6 +65,46 @@ switch ($method) {
         }
         break;
         
+    case 'PUT':
+        if (isset($_GET['action']) && $_GET['action'] === 'users') {
+            $id = $_GET['id'] ?? null;
+            
+            if (!$id) {
+                jsonResponse(['error' => 'User ID is required'], 400);
+            }
+            
+            $id = (int)$id;
+            $data = json_decode(file_get_contents('php://input'), true);
+            $newPassword = $data['password'] ?? '';
+            
+            if (empty($newPassword)) {
+                jsonResponse(['error' => 'New password is required'], 400);
+            }
+            
+            if (strlen($newPassword) < 6) {
+                jsonResponse(['error' => 'Password must be at least 6 characters long'], 400);
+            }
+            
+            // Check if user exists
+            $stmt = $conn->prepare("SELECT id FROM users WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows === 0) {
+                jsonResponse(['error' => 'User not found'], 404);
+            }
+            
+            // Hash and update password
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $stmt->bind_param("si", $hashedPassword, $id);
+            $stmt->execute();
+            
+            jsonResponse(['message' => 'Password changed successfully']);
+        }
+        break;
+        
     case 'DELETE':
         if (isset($_GET['action']) && $_GET['action'] === 'users') {
             $id = $_GET['id'] ?? null;

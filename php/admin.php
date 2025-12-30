@@ -88,19 +88,54 @@ function formatAllyCode($code) {
                     </td>
                     <td><?php echo date('Y-m-d', strtotime($user['created_at'])); ?></td>
                     <td>
-                        <?php if ($user['id'] != getUserId()): ?>
-                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                            <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-                            <button type="submit" name="delete_user" class="btn-danger">Delete</button>
-                        </form>
-                        <?php else: ?>
-                        <span style="color: #a0aec0;">Current User</span>
-                        <?php endif; ?>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button onclick="openChangePasswordModal(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['username'], ENT_QUOTES); ?>')" class="btn-secondary" style="padding: 6px 12px; font-size: 0.9rem;">Change Password</button>
+                            <?php if ($user['id'] != getUserId()): ?>
+                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                <button type="submit" name="delete_user" class="btn-danger" style="padding: 6px 12px; font-size: 0.9rem;">Delete</button>
+                            </form>
+                            <?php else: ?>
+                            <span style="color: #a0aec0; font-size: 0.9rem;">Current User</span>
+                            <?php endif; ?>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="changePasswordModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Change Password</h3>
+            <button class="modal-close" onclick="closeChangePasswordModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="changePasswordForm">
+                <input type="hidden" id="changePasswordUserId" name="user_id">
+                <div class="form-group">
+                    <label>User</label>
+                    <input type="text" id="changePasswordUsername" readonly style="background-color: #f7fafc; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="changePasswordNewPassword" name="password" required minlength="6" placeholder="Enter new password">
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="changePasswordConfirm" required minlength="6" placeholder="Confirm new password">
+                </div>
+                <div id="changePasswordError" class="error-message" style="display: none;"></div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeChangePasswordModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -177,6 +212,65 @@ document.getElementById('createUserForm').addEventListener('submit', async funct
         setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
         errorDiv.textContent = error.message || 'Failed to create user';
+        errorDiv.style.display = 'block';
+    }
+});
+
+// Change Password Modal Functions
+function openChangePasswordModal(userId, username) {
+    document.getElementById('changePasswordModal').style.display = 'flex';
+    document.getElementById('changePasswordUserId').value = userId;
+    document.getElementById('changePasswordUsername').value = username;
+    document.getElementById('changePasswordForm').reset();
+    document.getElementById('changePasswordUserId').value = userId;
+    document.getElementById('changePasswordUsername').value = username;
+    document.getElementById('changePasswordError').style.display = 'none';
+}
+
+function closeChangePasswordModal() {
+    document.getElementById('changePasswordModal').style.display = 'none';
+    document.getElementById('changePasswordForm').reset();
+    document.getElementById('changePasswordError').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('changePasswordModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeChangePasswordModal();
+    }
+});
+
+// Handle password change form submission
+document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const userId = document.getElementById('changePasswordUserId').value;
+    const newPassword = document.getElementById('changePasswordNewPassword').value;
+    const confirmPassword = document.getElementById('changePasswordConfirm').value;
+    const errorDiv = document.getElementById('changePasswordError');
+    
+    errorDiv.style.display = 'none';
+    
+    // Validate passwords match
+    if (newPassword !== confirmPassword) {
+        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    // Validate password length
+    if (newPassword.length < 6) {
+        errorDiv.textContent = 'Password must be at least 6 characters long';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        const result = await api.admin.changePassword(userId, newPassword);
+        showSuccess(result.message || 'Password changed successfully');
+        closeChangePasswordModal();
+    } catch (error) {
+        errorDiv.textContent = error.message || 'Failed to change password';
         errorDiv.style.display = 'block';
     }
 });

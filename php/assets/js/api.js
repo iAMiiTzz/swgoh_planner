@@ -100,6 +100,7 @@ api.guild = {
 api.admin = {
     getUsers: () => api.get('admin.php?action=users'),
     createUser: (data) => api.post('admin.php?action=users', data),
+    changePassword: (userId, password) => api.put(`admin.php?action=users&id=${userId}`, { password }),
     deleteUser: (id) => api.delete(`admin.php?action=users&id=${id}`),
 };
 
