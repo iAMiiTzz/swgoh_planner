@@ -89,8 +89,17 @@ require_once 'includes/header.php';
             </div>
             <div id="selectedCharacters" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
                 <div style="font-weight: 600; margin-bottom: 10px;">Selected Characters:</div>
-                <div id="selectedList" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 60px;">
-                    <!-- Selected characters will appear here -->
+                <div style="margin-bottom: 10px;">
+                    <div style="font-weight: 500; margin-bottom: 5px; color: #667eea;">Leader (1 required):</div>
+                    <div id="selectedLeader" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 50px; margin-bottom: 15px;">
+                        <span style="color: #718096;">No leader selected</span>
+                    </div>
+                </div>
+                    <div style="font-weight: 500; margin-bottom: 5px; color: #2d3748;">Members:</div>
+                    <div id="selectedMembers" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 60px;">
+                        <span style="color: #718096;">No members selected</span>
+                    </div>
+                    <div id="memberLimit" style="margin-top: 8px; font-size: 0.85rem; color: #718096;"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -267,9 +276,10 @@ function generateDefenseTerritories(territories) {
             <div class="territory-teams" data-territory="${index}">
                 ${Array(territory.maxTeams).fill(0).map((_, i) => `
                     <div class="team-slot" data-territory="${index}" data-slot="${i}">
+                        <div class="team-header">Team ${i + 1}</div>
                         <button type="button" class="team-select-button" onclick="openCharacterModal('defense', ${index}, ${i})">
                             <div class="team-characters-display" id="defense-${index}-${i}">
-                                <span class="team-select-placeholder">Select Team ${i + 1}</span>
+                                <span class="team-select-placeholder">Select Team</span>
                             </div>
                         </button>
                     </div>
@@ -292,9 +302,10 @@ function generateOffenseTerritories(territories) {
             <div class="territory-teams" data-territory="${index}">
                 ${Array(territory.maxTeams).fill(0).map((_, i) => `
                     <div class="team-slot" data-territory="${index}" data-slot="${i}">
+                        <div class="team-header">Team ${i + 1}</div>
                         <button type="button" class="team-select-button" onclick="openCharacterModal('offense', ${index}, ${i})">
                             <div class="team-characters-display" id="offense-${index}-${i}">
-                                <span class="team-select-placeholder">Select Team ${i + 1}</span>
+                                <span class="team-select-placeholder">Select Team</span>
                             </div>
                         </button>
                     </div>
@@ -362,13 +373,23 @@ function collectPlanData() {
         for (let i = 0; i < territory.maxTeams; i++) {
             const display = document.getElementById(`defense-${tIndex}-${i}`);
             if (display) {
-                const characters = Array.from(display.querySelectorAll('.character-image')).map(img => ({
-                    id: img.dataset.characterId,
-                    name: img.dataset.characterName,
-                    image: img.src
-                }));
-                if (characters.length > 0) {
-                    teams.push(characters);
+                const leaderImg = display.querySelector('.character-image.leader');
+                const memberImgs = display.querySelectorAll('.character-image.member');
+                
+                if (leaderImg || memberImgs.length > 0) {
+                    const team = {
+                        leader: leaderImg ? {
+                            id: leaderImg.dataset.characterId,
+                            name: leaderImg.dataset.characterName,
+                            image: leaderImg.src
+                        } : null,
+                        members: Array.from(memberImgs).map(img => ({
+                            id: img.dataset.characterId,
+                            name: img.dataset.characterName,
+                            image: img.src
+                        }))
+                    };
+                    teams.push(team);
                 }
             }
         }
@@ -385,13 +406,23 @@ function collectPlanData() {
         for (let i = 0; i < territory.maxTeams; i++) {
             const display = document.getElementById(`offense-${tIndex}-${i}`);
             if (display) {
-                const characters = Array.from(display.querySelectorAll('.character-image')).map(img => ({
-                    id: img.dataset.characterId,
-                    name: img.dataset.characterName,
-                    image: img.src
-                }));
-                if (characters.length > 0) {
-                    teams.push(characters);
+                const leaderImg = display.querySelector('.character-image.leader');
+                const memberImgs = display.querySelectorAll('.character-image.member');
+                
+                if (leaderImg || memberImgs.length > 0) {
+                    const team = {
+                        leader: leaderImg ? {
+                            id: leaderImg.dataset.characterId,
+                            name: leaderImg.dataset.characterName,
+                            image: leaderImg.src
+                        } : null,
+                        members: Array.from(memberImgs).map(img => ({
+                            id: img.dataset.characterId,
+                            name: img.dataset.characterName,
+                            image: img.src
+                        }))
+                    };
+                    teams.push(team);
                 }
             }
         }
@@ -527,19 +558,51 @@ function loadPlanData(plan) {
             if (territoryData.teams && Array.isArray(territoryData.teams)) {
                 territoryData.teams.forEach((team, teamIndex) => {
                     const display = document.getElementById(`defense-${tIndex}-${teamIndex}`);
-                    if (display && Array.isArray(team)) {
+                    if (display) {
                         display.innerHTML = '';
-                        team.forEach(char => {
-                            const img = document.createElement('img');
-                            img.className = 'character-image';
-                            img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
-                            img.alt = char.name;
-                            img.dataset.characterId = char.id;
-                            img.dataset.characterName = char.name;
-                            img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                            img.title = char.name;
-                            display.appendChild(img);
-                        });
+                        
+                        // Handle new format (leader + members)
+                        if (team.leader || (team.members && Array.isArray(team.members))) {
+                            // New format
+                            if (team.leader) {
+                                const img = document.createElement('img');
+                                img.className = 'character-image leader';
+                                img.src = team.leader.image || `https://swgoh.gg/static/img/assets/tex.char_${team.leader.id}.png`;
+                                img.alt = team.leader.name;
+                                img.dataset.characterId = team.leader.id;
+                                img.dataset.characterName = team.leader.name;
+                                img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                                img.title = team.leader.name + ' (Leader)';
+                                display.appendChild(img);
+                            }
+                            
+                            if (team.members && Array.isArray(team.members)) {
+                                team.members.forEach(char => {
+                                    const img = document.createElement('img');
+                                    img.className = 'character-image member';
+                                    img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
+                                    img.alt = char.name;
+                                    img.dataset.characterId = char.id;
+                                    img.dataset.characterName = char.name;
+                                    img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                                    img.title = char.name;
+                                    display.appendChild(img);
+                                });
+                            }
+                        } else if (Array.isArray(team)) {
+                            // Old format - just array of characters (backward compatibility)
+                            team.forEach((char, charIndex) => {
+                                const img = document.createElement('img');
+                                img.className = charIndex === 0 ? 'character-image leader' : 'character-image member';
+                                img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
+                                img.alt = char.name;
+                                img.dataset.characterId = char.id;
+                                img.dataset.characterName = char.name;
+                                img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                                img.title = charIndex === 0 ? char.name + ' (Leader)' : char.name;
+                                display.appendChild(img);
+                            });
+                        }
                     }
                 });
             }
@@ -555,19 +618,51 @@ function loadPlanData(plan) {
                 if (territoryData.teams && Array.isArray(territoryData.teams)) {
                     territoryData.teams.forEach((team, teamIndex) => {
                         const display = document.getElementById(`offense-${tIndex}-${teamIndex}`);
-                        if (display && Array.isArray(team)) {
+                        if (display) {
                             display.innerHTML = '';
-                            team.forEach(char => {
-                                const img = document.createElement('img');
-                                img.className = 'character-image';
-                                img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
-                                img.alt = char.name;
-                                img.dataset.characterId = char.id;
-                                img.dataset.characterName = char.name;
-                                img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                                img.title = char.name;
-                                display.appendChild(img);
-                            });
+                            
+                            // Handle new format (leader + members)
+                            if (team.leader || (team.members && Array.isArray(team.members))) {
+                                // New format
+                                if (team.leader) {
+                                    const img = document.createElement('img');
+                                    img.className = 'character-image leader';
+                                    img.src = team.leader.image || `https://swgoh.gg/static/img/assets/tex.char_${team.leader.id}.png`;
+                                    img.alt = team.leader.name;
+                                    img.dataset.characterId = team.leader.id;
+                                    img.dataset.characterName = team.leader.name;
+                                    img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                                    img.title = team.leader.name + ' (Leader)';
+                                    display.appendChild(img);
+                                }
+                                
+                                if (team.members && Array.isArray(team.members)) {
+                                    team.members.forEach(char => {
+                                        const img = document.createElement('img');
+                                        img.className = 'character-image member';
+                                        img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
+                                        img.alt = char.name;
+                                        img.dataset.characterId = char.id;
+                                        img.dataset.characterName = char.name;
+                                        img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                                        img.title = char.name;
+                                        display.appendChild(img);
+                                    });
+                                }
+                            } else if (Array.isArray(team)) {
+                                // Old format - just array of characters (backward compatibility)
+                                team.forEach((char, charIndex) => {
+                                    const img = document.createElement('img');
+                                    img.className = charIndex === 0 ? 'character-image leader' : 'character-image member';
+                                    img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
+                                    img.alt = char.name;
+                                    img.dataset.characterId = char.id;
+                                    img.dataset.characterName = char.name;
+                                    img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                                    img.title = charIndex === 0 ? char.name + ' (Leader)' : char.name;
+                                    display.appendChild(img);
+                                });
+                            }
                         }
                     });
                 }
@@ -595,15 +690,15 @@ function loadPlanData(plan) {
                 const display = document.getElementById(`offense-${territoryIndex}-${teamSlotIndex}`);
                 if (display && Array.isArray(team)) {
                     display.innerHTML = '';
-                    team.forEach(char => {
+                    team.forEach((char, charIndex) => {
                         const img = document.createElement('img');
-                        img.className = 'character-image';
+                        img.className = charIndex === 0 ? 'character-image leader' : 'character-image member';
                         img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
                         img.alt = char.name;
                         img.dataset.characterId = char.id;
                         img.dataset.characterName = char.name;
                         img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                        img.title = char.name;
+                        img.title = charIndex === 0 ? char.name + ' (Leader)' : char.name;
                         display.appendChild(img);
                     });
                 }
@@ -639,7 +734,8 @@ function loadPlanData(plan) {
 let currentTeamContext = null; // { type: 'defense'|'offense'|'fleet', territory: number, slot: number }
 let allCharacters = [];
 let filteredCharacters = [];
-let selectedCharacters = [];
+let selectedLeader = null;
+let selectedMembers = [];
 
 function openCharacterModal(type, territoryOrSlot, slot = null) {
     console.log('openCharacterModal called', type, territoryOrSlot, slot);
@@ -697,7 +793,8 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
 function closeCharacterModal() {
     document.getElementById('characterModal').style.display = 'none';
     currentTeamContext = null;
-    selectedCharacters = [];
+    selectedLeader = null;
+    selectedMembers = [];
 }
 
 function loadCharacters() {
@@ -784,17 +881,23 @@ function displayCharacters() {
         const charName = char.name || char.unit_name || 'Unknown';
         const baseId = char.base_id || char.id || '';
         const imageUrl = char.image || char.portrait || `https://swgoh.gg/static/img/assets/tex.char_${baseId}.png`;
-        const isSelected = selectedCharacters.some(c => c.id === baseId);
+        const isLeader = selectedLeader && selectedLeader.id === baseId;
+        const isMember = selectedMembers.some(c => c.id === baseId);
         
         // Escape single quotes for onclick
         const safeName = charName.replace(/'/g, "\\'");
         const safeImage = imageUrl.replace(/'/g, "\\'");
         const safeId = baseId.replace(/'/g, "\\'");
         
+        let statusClass = '';
+        if (isLeader) statusClass = 'selected-leader';
+        else if (isMember) statusClass = 'selected-member';
+        
         return `
-            <div class="character-item ${isSelected ? 'selected' : ''}" onclick="toggleCharacterSafe('${safeId}', '${safeName}', '${safeImage}')">
+            <div class="character-item ${statusClass}" onclick="toggleCharacterSafe('${safeId}', '${safeName}', '${safeImage}')">
                 <img src="${imageUrl}" alt="${charName}" onerror="this.src='https://via.placeholder.com/80?text=?'" />
                 <div class="character-name">${charName}</div>
+                ${isLeader ? '<div class="character-badge leader-badge">Leader</div>' : ''}
             </div>
         `;
     }).join('');
@@ -810,39 +913,121 @@ function toggleCharacterSafe(baseId, name, image) {
 }
 
 function toggleCharacter(character) {
-    const index = selectedCharacters.findIndex(c => c.id === character.base_id);
-    if (index > -1) {
-        selectedCharacters.splice(index, 1);
-    } else {
-        selectedCharacters.push({
+    const format = document.getElementById('format').value;
+    const maxMembers = format === '5v5' ? 4 : 2;
+    
+    // Check if it's already the leader
+    if (selectedLeader && selectedLeader.id === character.base_id) {
+        selectedLeader = null;
+    } else if (!selectedLeader) {
+        // Set as leader if no leader selected
+        selectedLeader = {
             id: character.base_id,
             name: character.name,
             image: character.image || `https://swgoh.gg/static/img/assets/tex.char_${character.base_id}.png`
-        });
+        };
+        // Remove from members if it was there
+        selectedMembers = selectedMembers.filter(c => c.id !== character.base_id);
+    } else {
+        // Toggle as member
+        const memberIndex = selectedMembers.findIndex(c => c.id === character.base_id);
+        if (memberIndex > -1) {
+            selectedMembers.splice(memberIndex, 1);
+        } else {
+            if (selectedMembers.length >= maxMembers) {
+                alert(`Maximum ${maxMembers} members allowed for ${format} format`);
+                return;
+            }
+            selectedMembers.push({
+                id: character.base_id,
+                name: character.name,
+                image: character.image || `https://swgoh.gg/static/img/assets/tex.char_${character.base_id}.png`
+            });
+        }
     }
     updateSelectedList();
     displayCharacters();
 }
 
 function updateSelectedList() {
-    const list = document.getElementById('selectedList');
-    list.innerHTML = selectedCharacters.map(char => `
-        <div class="selected-character">
-            <img src="${char.image}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/40?text=?'" />
-            <span>${char.name}</span>
-            <button type="button" onclick="removeSelectedCharacter('${char.id}')" style="background: #e53e3e; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; margin-left: 5px;">×</button>
-        </div>
-    `).join('') || '<span style="color: #718096;">No characters selected</span>';
+    const leaderDiv = document.getElementById('selectedLeader');
+    const membersDiv = document.getElementById('selectedMembers');
+    
+    if (selectedLeader) {
+        leaderDiv.innerHTML = `
+            <div class="selected-character leader-character">
+                <img src="${selectedLeader.image}" alt="${selectedLeader.name}" onerror="this.src='https://via.placeholder.com/40?text=?'" />
+                <span>${selectedLeader.name}</span>
+                <button type="button" onclick="removeLeader()" style="background: #e53e3e; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; margin-left: 5px;">×</button>
+            </div>
+        `;
+    } else {
+        leaderDiv.innerHTML = '<span style="color: #718096;">No leader selected</span>';
+    }
+    
+    if (selectedMembers.length > 0) {
+        membersDiv.innerHTML = selectedMembers.map(char => `
+            <div class="selected-character">
+                <img src="${char.image}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/40?text=?'" />
+                <span>${char.name}</span>
+                <button type="button" onclick="removeMember('${char.id}')" style="background: #e53e3e; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; margin-left: 5px;">×</button>
+            </div>
+        `).join('');
+    } else {
+        membersDiv.innerHTML = '<span style="color: #718096;">No members selected</span>';
+    }
+    
+    updateMemberLimit();
 }
 
-function removeSelectedCharacter(characterId) {
-    selectedCharacters = selectedCharacters.filter(c => c.id !== characterId);
+function updateMemberLimit() {
+    const format = document.getElementById('format').value;
+    const maxMembers = format === '5v5' ? 4 : 2;
+    const limitDiv = document.getElementById('memberLimit');
+    limitDiv.textContent = `${selectedMembers.length} / ${maxMembers} members selected`;
+    
+    if (selectedMembers.length >= maxMembers) {
+        limitDiv.style.color = '#38a169';
+        limitDiv.style.fontWeight = '600';
+    } else {
+        limitDiv.style.color = '#718096';
+        limitDiv.style.fontWeight = '400';
+    }
+}
+
+function removeLeader() {
+    selectedLeader = null;
+    updateSelectedList();
+    displayCharacters();
+}
+
+function removeMember(characterId) {
+    selectedMembers = selectedMembers.filter(c => c.id !== characterId);
     updateSelectedList();
     displayCharacters();
 }
 
 function confirmCharacterSelection() {
     if (!currentTeamContext) return;
+    
+    const format = document.getElementById('format').value;
+    const maxMembers = format === '5v5' ? 4 : 2;
+    
+    // Validate team composition
+    if (!selectedLeader) {
+        alert('Please select a leader for the team');
+        return;
+    }
+    
+    if (selectedMembers.length === 0) {
+        alert('Please select at least one member for the team');
+        return;
+    }
+    
+    if (selectedMembers.length > maxMembers) {
+        alert(`Maximum ${maxMembers} members allowed for ${format} format`);
+        return;
+    }
     
     const { type, territory, slot } = currentTeamContext;
     const displayId = slot !== null 
@@ -852,21 +1037,32 @@ function confirmCharacterSelection() {
     
     if (display) {
         display.innerHTML = '';
-        if (selectedCharacters.length > 0) {
-            selectedCharacters.forEach(char => {
-                const img = document.createElement('img');
-                img.className = 'character-image';
-                img.src = char.image;
-                img.alt = char.name;
-                img.dataset.characterId = char.id;
-                img.dataset.characterName = char.name;
-                img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                img.title = char.name;
-                display.appendChild(img);
-            });
-        } else {
-            display.innerHTML = '<span class="team-select-placeholder">Select Team</span>';
+        
+        // Display leader first
+        if (selectedLeader) {
+            const leaderImg = document.createElement('img');
+            leaderImg.className = 'character-image leader';
+            leaderImg.src = selectedLeader.image;
+            leaderImg.alt = selectedLeader.name;
+            leaderImg.dataset.characterId = selectedLeader.id;
+            leaderImg.dataset.characterName = selectedLeader.name;
+            leaderImg.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+            leaderImg.title = selectedLeader.name + ' (Leader)';
+            display.appendChild(leaderImg);
         }
+        
+        // Display members
+        selectedMembers.forEach(char => {
+            const img = document.createElement('img');
+            img.className = 'character-image member';
+            img.src = char.image;
+            img.alt = char.name;
+            img.dataset.characterId = char.id;
+            img.dataset.characterName = char.name;
+            img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+            img.title = char.name;
+            display.appendChild(img);
+        });
     }
     
     updateCounts();
@@ -897,7 +1093,8 @@ window.closeCharacterModal = closeCharacterModal;
 window.confirmCharacterSelection = confirmCharacterSelection;
 window.toggleCharacter = toggleCharacter;
 window.toggleCharacterSafe = toggleCharacterSafe;
-window.removeSelectedCharacter = removeSelectedCharacter;
+window.removeLeader = removeLeader;
+window.removeMember = removeMember;
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

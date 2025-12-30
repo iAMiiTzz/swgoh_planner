@@ -156,11 +156,29 @@
     border: 2px solid var(--border-color);
     cursor: pointer;
     transition: transform 0.2s;
+    position: relative;
+}
+
+.character-image.leader {
+    border: 3px solid #fbbf24;
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+.character-image.member {
+    border: 2px solid var(--border-color);
 }
 
 .character-image:hover {
     transform: scale(1.1);
     border-color: var(--primary-color);
+}
+
+.team-header {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-align: center;
 }
 
 /* Character Selection Modal Styles */
@@ -178,9 +196,35 @@
     border-color: var(--primary-color);
 }
 
-.character-item.selected {
+.character-item.selected-leader {
+    background: #fef3c7;
+    border-color: #fbbf24;
+}
+
+.character-item.selected-member {
     background: #e6f3ff;
     border-color: var(--primary-color);
+}
+
+.character-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #fbbf24;
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.leader-badge {
+    background: #fbbf24;
+}
+
+.selected-character.leader-character {
+    background: #fef3c7;
+    border: 2px solid #fbbf24;
 }
 
 .character-item img {
