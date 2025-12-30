@@ -12,3 +12,9 @@
     color: var(--primary-color);
 }
 
+@media (max-width: 768px) {
+    .settings-container > div[style*="display: flex"] {
+        flex-direction: column !important;
+    }
+}
+

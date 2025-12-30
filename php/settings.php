@@ -123,6 +123,41 @@ function formatAllyCode($code) {
     <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
     
+    <!-- Change Username and Password Side by Side -->
+    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+        <!-- Change Username -->
+        <div class="card" style="flex: 1;">
+            <h3>Change Username</h3>
+            <form method="POST">
+                <div class="form-group">
+                    <label>New Username</label>
+                    <input type="text" name="new_username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
+                </div>
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" name="password" required>
+                </div>
+                <button type="submit" name="change_username" class="btn-primary">Change Username</button>
+            </form>
+        </div>
+        
+        <!-- Change Password -->
+        <div class="card" style="flex: 1;">
+            <h3>Change Password</h3>
+            <form method="POST">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" name="current_password" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" name="new_password" required minlength="6">
+                </div>
+                <button type="submit" name="change_password" class="btn-primary">Change Password</button>
+            </form>
+        </div>
+    </div>
+    
     <!-- Ally Codes Section -->
     <div class="card">
         <h3>Ally Codes</h3>
@@ -140,38 +175,6 @@ function formatAllyCode($code) {
                 <input type="text" name="extra_ally_code" value="<?php echo formatAllyCode($user['extra_ally_code'] ?? ''); ?>" placeholder="123-456-789" maxlength="11">
             </div>
             <button type="submit" name="update_ally_codes" class="btn-primary">Update Ally Codes</button>
-        </form>
-    </div>
-    
-    <!-- Change Username -->
-    <div class="card" style="float: right; width: 48%;">
-        <h3>Change Username</h3>
-        <form method="POST">
-            <div class="form-group">
-                <label>New Username</label>
-                <input type="text" name="new_username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Current Password</label>
-                <input type="password" name="password" required>
-            </div>
-            <button type="submit" name="change_username" class="btn-primary">Change Username</button>
-        </form>
-    </div>
-    
-    <!-- Change Password -->
-    <div class="card" style="clear: both; margin-top: 20px;">
-        <h3>Change Password</h3>
-        <form method="POST">
-            <div class="form-group">
-                <label>Current Password</label>
-                <input type="password" name="current_password" required>
-            </div>
-            <div class="form-group">
-                <label>New Password</label>
-                <input type="password" name="new_password" required minlength="6">
-            </div>
-            <button type="submit" name="change_password" class="btn-primary">Change Password</button>
         </form>
     </div>
 </div>
