@@ -238,8 +238,29 @@ let currentPlan = {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('league').addEventListener('change', updateLayout);
-    document.getElementById('format').addEventListener('change', updateLayout);
+    document.getElementById('league').addEventListener('change', function() {
+        updateLayout();
+        // Clear any open modal selections when format/league changes
+        if (currentTeamContext) {
+            selectedLeader = null;
+            selectedMembers = [];
+            updateSelectedList();
+        }
+    });
+    document.getElementById('format').addEventListener('change', function() {
+        updateLayout();
+        // Update member limit if modal is open
+        if (currentTeamContext) {
+            updateMemberLimit();
+            // Remove excess members if format changed to 3v3
+            const maxMembers = document.getElementById('format').value === '5v5' ? 4 : 2;
+            if (selectedMembers.length > maxMembers) {
+                selectedMembers = selectedMembers.slice(0, maxMembers);
+                updateSelectedList();
+                displayCharacters();
+            }
+        }
+    });
     updateLayout();
 });
 
