@@ -383,6 +383,14 @@ function generateOffenseTerritories(territories) {
     const container = document.getElementById('offenseTerritories');
     container.innerHTML = '';
     
+    // Map offense territory indices (swap 0↔1 and 2↔3) to get opposite teams
+    const offenseTerritoryIndexMap = {
+        0: 1,  // Top Back (index 0) → use Top Front's teams (index 1)
+        1: 0,  // Top Front (index 1) → use Top Back's teams (index 0)
+        2: 3,  // Bottom Back (index 2) → use Bottom Front's teams (index 3)
+        3: 2   // Bottom Front (index 3) → use Bottom Back's teams (index 2)
+    };
+    
     // Map offense territory names (swap Top Front/Top Back and Bottom Back/Bottom Front)
     const offenseTerritoryNames = {
         'Top Back': 'Top Front',
@@ -392,6 +400,11 @@ function generateOffenseTerritories(territories) {
     };
     
     territories.forEach((territory, index) => {
+        // Get the swapped territory to use its maxTeams
+        const swappedIndex = offenseTerritoryIndexMap[index] !== undefined ? offenseTerritoryIndexMap[index] : index;
+        const swappedTerritory = territories[swappedIndex];
+        const maxTeams = swappedTerritory ? swappedTerritory.maxTeams : territory.maxTeams;
+        
         const territoryDiv = document.createElement('div');
         territoryDiv.className = 'territory-card';
         // Use swapped name for offense
@@ -399,7 +412,7 @@ function generateOffenseTerritories(territories) {
         territoryDiv.innerHTML = `
             <h4>${displayName}</h4>
             <div class="territory-teams" data-territory="${index}">
-                ${Array(territory.maxTeams).fill(0).map((_, i) => `
+                ${Array(maxTeams).fill(0).map((_, i) => `
                     <div class="team-slot" data-territory="${index}" data-slot="${i}">
                         <div class="team-header">Team ${i + 1}</div>
                         <button type="button" class="team-select-button" onclick="openCharacterModal('offense', ${index}, ${i})">
@@ -518,8 +531,13 @@ function collectPlanData() {
     // Create array with swapped positions
     const swappedOffenseTeams = [];
     config.territories.forEach((territory, tIndex) => {
+        // Get the swapped territory to use its maxTeams
+        const swappedIndex = offenseTerritoryIndexMap[tIndex] !== undefined ? offenseTerritoryIndexMap[tIndex] : tIndex;
+        const swappedTerritory = config.territories[swappedIndex];
+        const maxTeams = swappedTerritory ? swappedTerritory.maxTeams : territory.maxTeams;
+        
         const teams = [];
-        for (let i = 0; i < territory.maxTeams; i++) {
+        for (let i = 0; i < maxTeams; i++) {
             const display = document.getElementById(`offense-${tIndex}-${i}`);
             if (display) {
                 const leaderImg = display.querySelector('.character-image.leader');
