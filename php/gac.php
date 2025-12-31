@@ -1742,24 +1742,40 @@ function confirmCharacterSelection() {
             return;
         }
         
-        // Validate that leader is a Capital ship
-        const leaderIsCapital = isCapitalShip({ base_id: selectedLeader.id, name: selectedLeader.name });
-        if (!leaderIsCapital) {
-            alert('The fleet leader must be a Capital ship');
-            return;
-        }
-        
-        // Validate that all members are regular ships (not capitals)
-        for (let member of selectedMembers) {
-            const memberIsCapital = isCapitalShip({ base_id: member.id, name: member.name });
-            if (memberIsCapital) {
-                alert('Only one Capital ship is allowed per fleet. Please remove the Capital ship from members.');
+        // Validate that leader is a Capital ship - look up full character data
+        const leaderFullChar = allCharacters.find(c => {
+            const charId = c.base_id || c.id || '';
+            return charId === selectedLeader.id;
+        });
+        if (leaderFullChar) {
+            const leaderIsCapital = isCapitalShip(leaderFullChar);
+            if (!leaderIsCapital) {
+                alert('The fleet leader must be a Capital ship');
                 return;
             }
-            const memberIsShip = isShip({ base_id: member.id, name: member.name });
-            if (!memberIsShip) {
-                alert('All fleet members must be ships');
-                return;
+        }
+        
+        // Validate that all members are regular ships (not capitals) - look up full character data
+        for (let member of selectedMembers) {
+            const memberFullChar = allCharacters.find(c => {
+                const charId = c.base_id || c.id || '';
+                return charId === member.id;
+            });
+            
+            if (memberFullChar) {
+                const memberIsCapital = isCapitalShip(memberFullChar);
+                if (memberIsCapital) {
+                    alert('Only one Capital ship is allowed per fleet. Please remove the Capital ship from members.');
+                    return;
+                }
+                const memberIsShip = isShip(memberFullChar);
+                if (!memberIsShip) {
+                    alert('All fleet members must be ships');
+                    return;
+                }
+            } else {
+                // If we can't find the full character data, skip validation for this member
+                console.warn('Could not find full character data for member:', member.id);
             }
         }
         
