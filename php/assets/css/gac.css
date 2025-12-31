@@ -248,13 +248,17 @@
 .character-item {
     text-align: center;
     cursor: pointer;
-    padding: 6px;
+    padding: 8px;
     border-radius: 8px;
     transition: all 0.2s ease;
     border: 2px solid transparent;
     background: white;
     position: relative;
     overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .character-item:hover {
@@ -269,6 +273,10 @@
     border: 3px solid #e53e3e;
     border-radius: 8px;
     box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .character-item.selected-member {
@@ -276,6 +284,10 @@
     border: 3px solid #e53e3e;
     border-radius: 8px;
     box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .character-item.used-item {
@@ -382,7 +394,9 @@
     word-break: break-word;
     line-height: 1.2;
     font-weight: 500;
-    margin-top: 2px;
+    margin-top: 4px;
+    text-align: center;
+    width: 100%;
 }
 
 /* Selected Characters Section */
