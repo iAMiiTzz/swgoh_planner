@@ -866,7 +866,7 @@ function loadCharacters() {
             
             if (!Array.isArray(characters) || characters.length === 0) {
                 console.error('Could not parse characters from response:', response);
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #e53e3e;">Invalid data format received from API. Check console for details.</div>';
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #e53e3e;"><div style="font-size: 1.2rem; margin-bottom: 8px;">⚠️</div><div>Invalid data format received from API.</div><div style="font-size: 0.85rem; margin-top: 8px; color: #718096;">Check console for details.</div></div>';
                 return;
             }
             
