@@ -500,6 +500,13 @@ function collectPlanData() {
     
     // Collect offense teams by territory
     const offenseTeams = [];
+    // Map offense territory indices (swap 0↔1 and 2↔3)
+    const offenseTerritoryIndexMap = {
+        0: 1,  // Top Back (index 0) → Top Front (index 1)
+        1: 0,  // Top Front (index 1) → Top Back (index 0)
+        2: 3,  // Bottom Back (index 2) → Bottom Front (index 3)
+        3: 2   // Bottom Front (index 3) → Bottom Back (index 2)
+    };
     // Map offense territory names (swap Top Front/Top Back and Bottom Back/Bottom Front)
     const offenseTerritoryNames = {
         'Top Back': 'Top Front',
@@ -507,6 +514,9 @@ function collectPlanData() {
         'Bottom Back': 'Bottom Front',
         'Bottom Front': 'Bottom Back'
     };
+    
+    // Create array with swapped positions
+    const swappedOffenseTeams = [];
     config.territories.forEach((territory, tIndex) => {
         const teams = [];
         for (let i = 0; i < territory.maxTeams; i++) {
@@ -532,11 +542,20 @@ function collectPlanData() {
                 }
             }
         }
-        // Use swapped name for offense when saving
-        const displayName = offenseTerritoryNames[territory.name] || territory.name;
+        swappedOffenseTeams[tIndex] = {
+            territory: territory.name,
+            teams: teams
+        };
+    });
+    
+    // Reorder using the swap map
+    config.territories.forEach((territory, tIndex) => {
+        const swappedIndex = offenseTerritoryIndexMap[tIndex] !== undefined ? offenseTerritoryIndexMap[tIndex] : tIndex;
+        const swappedData = swappedOffenseTeams[swappedIndex] || { territory: territory.name, teams: [] };
+        const displayName = offenseTerritoryNames[swappedData.territory] || swappedData.territory;
         offenseTeams.push({
             territory: displayName,
-            teams: teams
+            teams: swappedData.teams
         });
     });
     
@@ -795,11 +814,22 @@ function loadPlanData(plan) {
     if (plan.offense_teams && Array.isArray(plan.offense_teams)) {
         // Check if it's the new territory format
         if (plan.offense_teams.length > 0 && plan.offense_teams[0].territory) {
+            // Map offense territory indices (swap 0↔1 and 2↔3) - reverse of save
+            const offenseTerritoryIndexMap = {
+                0: 1,  // Load from index 1 to display at index 0
+                1: 0,  // Load from index 0 to display at index 1
+                2: 3,  // Load from index 3 to display at index 2
+                3: 2   // Load from index 2 to display at index 3
+            };
+            
             // New territory-based format
-            plan.offense_teams.forEach((territoryData, tIndex) => {
+            plan.offense_teams.forEach((territoryData, savedIndex) => {
+                // Map saved index to display index
+                const displayIndex = offenseTerritoryIndexMap[savedIndex] !== undefined ? offenseTerritoryIndexMap[savedIndex] : savedIndex;
+                
                 if (territoryData.teams && Array.isArray(territoryData.teams)) {
                     territoryData.teams.forEach((team, teamIndex) => {
-                        const display = document.getElementById(`offense-${tIndex}-${teamIndex}`);
+                        const display = document.getElementById(`offense-${displayIndex}-${teamIndex}`);
                         if (display) {
                             display.innerHTML = '';
                             
@@ -817,7 +847,7 @@ function loadPlanData(plan) {
                                     img.title = team.leader.name + ' (Leader) - Click to edit';
                                     img.style.cursor = 'pointer';
                                     img.onclick = function() {
-                                        openCharacterModal('offense', tIndex, teamIndex);
+                                        openCharacterModal('offense', displayIndex, teamIndex);
                                     };
                                     display.appendChild(img);
                                 }
@@ -834,7 +864,7 @@ function loadPlanData(plan) {
                                         img.title = char.name + ' - Click to edit';
                                         img.style.cursor = 'pointer';
                                         img.onclick = function() {
-                                            openCharacterModal('offense', tIndex, teamIndex);
+                                            openCharacterModal('offense', displayIndex, teamIndex);
                                         };
                                         display.appendChild(img);
                                     });
@@ -852,7 +882,7 @@ function loadPlanData(plan) {
                                     img.title = charIndex === 0 ? char.name + ' (Leader) - Click to edit' : char.name + ' - Click to edit';
                                     img.style.cursor = 'pointer';
                                     img.onclick = function() {
-                                        openCharacterModal('offense', tIndex, teamIndex);
+                                        openCharacterModal('offense', displayIndex, teamIndex);
                                     };
                                     display.appendChild(img);
                                 });
@@ -863,25 +893,35 @@ function loadPlanData(plan) {
             });
         } else {
             // Old format - just array of teams (for backward compatibility)
+            // Map offense territory indices (swap 0↔1 and 2↔3) - reverse of save
+            const offenseTerritoryIndexMap = {
+                0: 1,  // Load from index 1 to display at index 0
+                1: 0,  // Load from index 0 to display at index 1
+                2: 3,  // Load from index 3 to display at index 2
+                3: 2   // Load from index 2 to display at index 3
+            };
+            
             plan.offense_teams.forEach((team, index) => {
                 // Try to find a matching slot in territories
                 const league = document.getElementById('league').value;
                 const format = document.getElementById('format').value;
                 const config = GAC_CONFIG[league][format];
                 let slotIndex = 0;
-                let territoryIndex = 0;
+                let savedTerritoryIndex = 0;
                 
-                // Distribute teams across territories
+                // Distribute teams across territories (using saved positions)
                 for (let t = 0; t < config.territories.length && slotIndex < index; t++) {
                     if (slotIndex + config.territories[t].maxTeams > index) {
-                        territoryIndex = t;
+                        savedTerritoryIndex = t;
                         break;
                     }
                     slotIndex += config.territories[t].maxTeams;
                 }
                 
+                // Map saved territory index to display index
+                const displayTerritoryIndex = offenseTerritoryIndexMap[savedTerritoryIndex] !== undefined ? offenseTerritoryIndexMap[savedTerritoryIndex] : savedTerritoryIndex;
                 const teamSlotIndex = index - slotIndex;
-                const display = document.getElementById(`offense-${territoryIndex}-${teamSlotIndex}`);
+                const display = document.getElementById(`offense-${displayTerritoryIndex}-${teamSlotIndex}`);
                 if (display && Array.isArray(team)) {
                     display.innerHTML = '';
                     team.forEach((char, charIndex) => {
@@ -895,7 +935,7 @@ function loadPlanData(plan) {
                         img.title = charIndex === 0 ? char.name + ' (Leader) - Click to edit' : char.name + ' - Click to edit';
                         img.style.cursor = 'pointer';
                         img.onclick = function() {
-                            openCharacterModal('offense', territoryIndex, teamSlotIndex);
+                            openCharacterModal('offense', displayTerritoryIndex, teamSlotIndex);
                         };
                         display.appendChild(img);
                     });
