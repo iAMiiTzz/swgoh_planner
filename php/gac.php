@@ -649,13 +649,23 @@ function collectPlanData() {
     for (let i = 0; i < config.maxFleetTeams; i++) {
         const display = document.getElementById(`fleet-defense-${i}`);
         if (display) {
-            const characters = Array.from(display.querySelectorAll('.character-image')).map(img => ({
-                id: img.dataset.characterId,
-                name: img.dataset.characterName,
-                image: img.src
-            }));
-            if (characters.length > 0) {
-                fleetTeams.push(characters);
+            const leaderImg = display.querySelector('.character-image.leader');
+            const memberImgs = display.querySelectorAll('.character-image.member');
+            
+            if (leaderImg || memberImgs.length > 0) {
+                const team = {
+                    leader: leaderImg ? {
+                        id: leaderImg.dataset.characterId,
+                        name: leaderImg.dataset.characterName,
+                        image: leaderImg.src
+                    } : null,
+                    members: Array.from(memberImgs).map(img => ({
+                        id: img.dataset.characterId,
+                        name: img.dataset.characterName,
+                        image: img.src
+                    }))
+                };
+                fleetTeams.push(team);
             }
         }
     }
@@ -663,13 +673,23 @@ function collectPlanData() {
     for (let i = 0; i < config.maxFleetTeams; i++) {
         const display = document.getElementById(`fleet-offense-${i}`);
         if (display) {
-            const characters = Array.from(display.querySelectorAll('.character-image')).map(img => ({
-                id: img.dataset.characterId,
-                name: img.dataset.characterName,
-                image: img.src
-            }));
-            if (characters.length > 0) {
-                fleetTeams.push(characters);
+            const leaderImg = display.querySelector('.character-image.leader');
+            const memberImgs = display.querySelectorAll('.character-image.member');
+            
+            if (leaderImg || memberImgs.length > 0) {
+                const team = {
+                    leader: leaderImg ? {
+                        id: leaderImg.dataset.characterId,
+                        name: leaderImg.dataset.characterName,
+                        image: leaderImg.src
+                    } : null,
+                    members: Array.from(memberImgs).map(img => ({
+                        id: img.dataset.characterId,
+                        name: img.dataset.characterName,
+                        image: img.src
+                    }))
+                };
+                fleetTeams.push(team);
             }
         }
     }
