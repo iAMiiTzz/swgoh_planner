@@ -360,21 +360,34 @@ function generateDefenseTerritories(territories) {
     territories.forEach((territory, index) => {
         const territoryDiv = document.createElement('div');
         territoryDiv.className = 'territory-card';
-        territoryDiv.innerHTML = `
-            <h4>${territory.name}</h4>
-            <div class="territory-teams" data-territory="${index}">
-                ${Array(territory.maxTeams).fill(0).map((_, i) => `
-                    <div class="team-slot" data-territory="${index}" data-slot="${i}">
-                        <div class="team-header">Team ${i + 1}</div>
-                        <button type="button" class="team-select-button" onclick="openCharacterModal('defense', ${index}, ${i})">
-                            <div class="team-characters-display" id="defense-${index}-${i}">
-                                <span class="team-select-placeholder">Select Team</span>
-                            </div>
-                        </button>
+        
+        // Top Back (index 0) is ships only, no character teams
+        if (territory.name === 'Top Back') {
+            territoryDiv.innerHTML = `
+                <h4>${territory.name}</h4>
+                <div class="territory-teams" data-territory="${index}">
+                    <div style="text-align: center; padding: 20px; color: #718096; font-style: italic;">
+                        Ships only - use Fleet Teams section below
                     </div>
-                `).join('')}
-            </div>
-        `;
+                </div>
+            `;
+        } else {
+            territoryDiv.innerHTML = `
+                <h4>${territory.name}</h4>
+                <div class="territory-teams" data-territory="${index}">
+                    ${Array(territory.maxTeams).fill(0).map((_, i) => `
+                        <div class="team-slot" data-territory="${index}" data-slot="${i}">
+                            <div class="team-header">Team ${i + 1}</div>
+                            <button type="button" class="team-select-button" onclick="openCharacterModal('defense', ${index}, ${i})">
+                                <div class="team-characters-display" id="defense-${index}-${i}">
+                                    <span class="team-select-placeholder">Select Team</span>
+                                </div>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
         container.appendChild(territoryDiv);
     });
 }
@@ -409,21 +422,34 @@ function generateOffenseTerritories(territories) {
         territoryDiv.className = 'territory-card';
         // Use swapped name for offense
         const displayName = offenseTerritoryNames[territory.name] || territory.name;
-        territoryDiv.innerHTML = `
-            <h4>${displayName}</h4>
-            <div class="territory-teams" data-territory="${index}">
-                ${Array(maxTeams).fill(0).map((_, i) => `
-                    <div class="team-slot" data-territory="${index}" data-slot="${i}">
-                        <div class="team-header">Team ${i + 1}</div>
-                        <button type="button" class="team-select-button" onclick="openCharacterModal('offense', ${index}, ${i})">
-                            <div class="team-characters-display" id="offense-${index}-${i}">
-                                <span class="team-select-placeholder">Select Team</span>
-                            </div>
-                        </button>
+        
+        // Top Back on offense (which is index 1, displays as "Top Back") is ships only
+        if (displayName === 'Top Back') {
+            territoryDiv.innerHTML = `
+                <h4>${displayName}</h4>
+                <div class="territory-teams" data-territory="${index}">
+                    <div style="text-align: center; padding: 20px; color: #718096; font-style: italic;">
+                        Ships only - use Fleet Teams section below
                     </div>
-                `).join('')}
-            </div>
-        `;
+                </div>
+            `;
+        } else {
+            territoryDiv.innerHTML = `
+                <h4>${displayName}</h4>
+                <div class="territory-teams" data-territory="${index}">
+                    ${Array(maxTeams).fill(0).map((_, i) => `
+                        <div class="team-slot" data-territory="${index}" data-slot="${i}">
+                            <div class="team-header">Team ${i + 1}</div>
+                            <button type="button" class="team-select-button" onclick="openCharacterModal('offense', ${index}, ${i})">
+                                <div class="team-characters-display" id="offense-${index}-${i}">
+                                    <span class="team-select-placeholder">Select Team</span>
+                                </div>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
         container.appendChild(territoryDiv);
     });
 }
@@ -481,6 +507,15 @@ function collectPlanData() {
     // Collect defense teams by territory
     const defenseTeams = [];
     config.territories.forEach((territory, tIndex) => {
+        // Skip Top Back - it's ships only
+        if (territory.name === 'Top Back') {
+            defenseTeams.push({
+                territory: territory.name,
+                teams: []
+            });
+            return;
+        }
+        
         const teams = [];
         for (let i = 0; i < territory.maxTeams; i++) {
             const display = document.getElementById(`defense-${tIndex}-${i}`);
@@ -571,6 +606,16 @@ function collectPlanData() {
         const swappedIndex = offenseTerritoryIndexMap[tIndex] !== undefined ? offenseTerritoryIndexMap[tIndex] : tIndex;
         const swappedData = swappedOffenseTeams[swappedIndex] || { territory: territory.name, teams: [] };
         const displayName = offenseTerritoryNames[swappedData.territory] || swappedData.territory;
+        
+        // Top Back on offense is ships only, skip character teams
+        if (displayName === 'Top Back') {
+            offenseTeams.push({
+                territory: displayName,
+                teams: []
+            });
+            return;
+        }
+        
         offenseTeams.push({
             territory: displayName,
             teams: swappedData.teams
@@ -762,6 +807,11 @@ function loadPlanData(plan) {
     // Load defense teams
     if (plan.defense_teams && Array.isArray(plan.defense_teams)) {
         plan.defense_teams.forEach((territoryData, tIndex) => {
+            // Skip Top Back - it's ships only
+            if (territoryData.territory === 'Top Back') {
+                return;
+            }
+            
             if (territoryData.teams && Array.isArray(territoryData.teams)) {
                 territoryData.teams.forEach((team, teamIndex) => {
                     const display = document.getElementById(`defense-${tIndex}-${teamIndex}`);
@@ -842,6 +892,11 @@ function loadPlanData(plan) {
             
             // New territory-based format
             plan.offense_teams.forEach((territoryData, savedIndex) => {
+                // Skip Top Back - it's ships only
+                if (territoryData.territory === 'Top Back') {
+                    return;
+                }
+                
                 // Map saved index to display index
                 const displayIndex = offenseTerritoryIndexMap[savedIndex] !== undefined ? offenseTerritoryIndexMap[savedIndex] : savedIndex;
                 
