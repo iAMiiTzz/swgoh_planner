@@ -341,6 +341,9 @@ function updateLayout() {
     generateFleetTeams(config.maxFleetTeams);
     
     updateCounts();
+    
+    // Auto-save when layout changes (territories are regenerated)
+    autoSave();
 }
 
 function generateDefenseTerritories(territories) {
