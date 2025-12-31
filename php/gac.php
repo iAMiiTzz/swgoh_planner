@@ -1237,6 +1237,21 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
         modal.style.display = 'flex';
         modal.style.zIndex = '1000';
         
+        // Update modal title and labels for fleet teams
+        const modalTitle = document.querySelector('#characterModal .modal-header h3');
+        const leaderLabel = document.getElementById('leaderLabel');
+        const membersLabel = document.getElementById('membersLabel');
+        
+        if (type === 'fleet') {
+            if (modalTitle) modalTitle.textContent = 'Select Fleet';
+            if (leaderLabel) leaderLabel.textContent = 'Capital Ship';
+            if (membersLabel) membersLabel.textContent = 'Ships';
+        } else {
+            if (modalTitle) modalTitle.textContent = 'Select Team';
+            if (leaderLabel) leaderLabel.textContent = 'Leader';
+            if (membersLabel) membersLabel.textContent = 'Members';
+        }
+        
         // Force modal to be visible
         setTimeout(() => {
             if (modal.style.display !== 'flex') {
