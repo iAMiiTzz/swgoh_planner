@@ -792,11 +792,11 @@ let allCharacters = [];
 let filteredCharacters = [];
 let selectedLeader = null;
 let selectedMembers = [];
-let usedDefenseCharacters = new Set(); // Track characters already used in defense
+let usedDefenseCharacters = new Map(); // Track characters already used in defense: characterId -> {territory: string, team: number}
 
 // Get all characters currently used in defense territories (excluding current team)
 function getUsedDefenseCharacters(excludeTerritory, excludeSlot) {
-    const used = new Set();
+    const used = new Map();
     const league = document.getElementById('league').value;
     const format = document.getElementById('format').value;
     const config = GAC_CONFIG[league][format];
@@ -810,17 +810,26 @@ function getUsedDefenseCharacters(excludeTerritory, excludeSlot) {
             
             const display = document.getElementById(`defense-${tIndex}-${i}`);
             if (display) {
+                const territoryName = territory.name;
+                const teamNumber = i + 1;
+                
                 // Get leader
                 const leaderImg = display.querySelector('.character-image.leader');
                 if (leaderImg && leaderImg.dataset.characterId) {
-                    used.add(leaderImg.dataset.characterId);
+                    used.set(leaderImg.dataset.characterId, {
+                        territory: territoryName,
+                        team: teamNumber
+                    });
                 }
                 
                 // Get members
                 const memberImgs = display.querySelectorAll('.character-image.member');
                 memberImgs.forEach(img => {
                     if (img.dataset.characterId) {
-                        used.add(img.dataset.characterId);
+                        used.set(img.dataset.characterId, {
+                            territory: territoryName,
+                            team: teamNumber
+                        });
                     }
                 });
                 
@@ -829,7 +838,10 @@ function getUsedDefenseCharacters(excludeTerritory, excludeSlot) {
                     const allImgs = display.querySelectorAll('.character-image');
                     allImgs.forEach(img => {
                         if (img.dataset.characterId) {
-                            used.add(img.dataset.characterId);
+                            used.set(img.dataset.characterId, {
+                                territory: territoryName,
+                                team: teamNumber
+                            });
                         }
                     });
                 }
@@ -852,7 +864,7 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
         if (type === 'defense') {
             usedDefenseCharacters = getUsedDefenseCharacters(territoryOrSlot, slot);
         } else {
-            usedDefenseCharacters = new Set();
+            usedDefenseCharacters = new Map();
         }
         
         // Load existing characters if any
@@ -1022,7 +1034,8 @@ function displayCharacters() {
         const isMember = selectedMembers.some(c => c.id === baseId);
         
         // Check if character is already used in defense (only for defense teams)
-        const isUsedInDefense = currentTeamContext && currentTeamContext.type === 'defense' && usedDefenseCharacters.has(baseId);
+        const usedLocation = currentTeamContext && currentTeamContext.type === 'defense' ? usedDefenseCharacters.get(baseId) : null;
+        const isUsedInDefense = usedLocation !== null && usedLocation !== undefined;
         
         // Escape single quotes for onclick
         const safeName = charName.replace(/'/g, "\\'");
@@ -1037,12 +1050,18 @@ function displayCharacters() {
         const clickHandler = isUsedInDefense ? '' : `onclick="toggleCharacterSafe('${safeId}', '${safeName}', '${safeImage}')"`;
         const cursorStyle = isUsedInDefense ? 'cursor: not-allowed;' : '';
         
+        // Create location text for badge
+        let locationText = 'Used';
+        if (usedLocation) {
+            locationText = `${usedLocation.territory} T${usedLocation.team}`;
+        }
+        
         return `
             <div class="character-item ${statusClass}" ${clickHandler} style="${cursorStyle}">
                 <img src="${imageUrl}" alt="${charName}" onerror="this.src='https://via.placeholder.com/80?text=?'" />
                 <div class="character-name">${charName}</div>
                 ${isLeader ? '<div class="character-badge leader-badge">Leader</div>' : ''}
-                ${isUsedInDefense ? '<div class="character-badge used-badge">Used</div>' : ''}
+                ${isUsedInDefense ? `<div class="character-badge used-badge" title="Used in ${usedLocation.territory}, Team ${usedLocation.team}">${locationText}</div>` : ''}
             </div>
         `;
     }).join('');
@@ -1063,12 +1082,13 @@ function toggleCharacter(character) {
     
     // Check if character is already used in defense (only for defense teams)
     if (currentTeamContext && currentTeamContext.type === 'defense') {
-        if (usedDefenseCharacters.has(character.base_id)) {
+        const usedLocation = usedDefenseCharacters.get(character.base_id);
+        if (usedLocation) {
             // Check if it's not already in the current selection
             const isInCurrentSelection = (selectedLeader && selectedLeader.id === character.base_id) ||
                                         selectedMembers.some(c => c.id === character.base_id);
             if (!isInCurrentSelection) {
-                alert(`${character.name} is already used in another defense territory. Each character can only be used once in defense.`);
+                alert(`${character.name} is already used in ${usedLocation.territory}, Team ${usedLocation.team}. Each character can only be used once in defense.`);
                 return;
             }
         }
