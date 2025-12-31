@@ -1400,6 +1400,30 @@ function toggleCharacterSafe(baseId, name, image) {
 }
 
 function toggleCharacter(character) {
+    // Fleet teams don't need leader/member structure - just add/remove from list
+    if (currentTeamContext && currentTeamContext.type === 'fleet') {
+        // Check if already selected
+        const isLeader = selectedLeader && selectedLeader.id === character.base_id;
+        const isMember = selectedMembers.some(c => c.id === character.base_id);
+        
+        if (isLeader) {
+            selectedLeader = null;
+        } else if (isMember) {
+            selectedMembers = selectedMembers.filter(c => c.id !== character.base_id);
+        } else {
+            // Add to members (fleet doesn't need leader, but we'll use members array)
+            selectedMembers.push({
+                id: character.base_id,
+                name: character.name,
+                image: character.image || `https://swgoh.gg/static/img/assets/tex.char_${character.base_id}.png`
+            });
+        }
+        updateSelectedList();
+        displayCharacters();
+        return;
+    }
+    
+    // Character teams need leader + members structure
     const format = document.getElementById('format').value;
     const maxMembers = format === '5v5' ? 4 : 2;
     
@@ -1454,6 +1478,29 @@ function updateSelectedList() {
     const leaderDiv = document.getElementById('selectedLeader');
     const membersDiv = document.getElementById('selectedMembers');
     
+    // Fleet teams don't need leader/member distinction
+    if (currentTeamContext && currentTeamContext.type === 'fleet') {
+        // Hide leader section for fleet, show all in members
+        leaderDiv.innerHTML = '';
+        const allFleetChars = [];
+        if (selectedLeader) allFleetChars.push(selectedLeader);
+        allFleetChars.push(...selectedMembers);
+        
+        if (allFleetChars.length > 0) {
+            membersDiv.innerHTML = allFleetChars.map(char => `
+                <div class="selected-character">
+                    <img src="${char.image}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/40?text=?'" />
+                    <span>${char.name}</span>
+                    <button type="button" onclick="removeMember('${char.id}')">×</button>
+                </div>
+            `).join('');
+        } else {
+            membersDiv.innerHTML = '<span class="empty-state">No ships selected</span>';
+        }
+        return;
+    }
+    
+    // Character teams need leader + members
     if (selectedLeader) {
         leaderDiv.innerHTML = `
             <div class="selected-character leader-character">
