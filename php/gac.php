@@ -125,20 +125,20 @@ const GAC_CONFIG = {
             maxSquadTeams: 11,
             maxFleetTeams: 3,
             territories: [
-                { name: 'Territory 1', maxTeams: 3 },
-                { name: 'Territory 2', maxTeams: 4 },
-                { name: 'Territory 3', maxTeams: 3 },
-                { name: 'Territory 4', maxTeams: 4 }
+                { name: 'Top Back', maxTeams: 3 },
+                { name: 'Top Front', maxTeams: 4 },
+                { name: 'Bottom Back', maxTeams: 3 },
+                { name: 'Bottom Front', maxTeams: 4 }
             ]
         },
         '3v3': {
             maxSquadTeams: 15,
             maxFleetTeams: 3,
             territories: [
-                { name: 'Territory 1', maxTeams: 3 },
-                { name: 'Territory 2', maxTeams: 5 },
-                { name: 'Territory 3', maxTeams: 5 },
-                { name: 'Territory 4', maxTeams: 5 }
+                { name: 'Top Back', maxTeams: 3 },
+                { name: 'Top Front', maxTeams: 5 },
+                { name: 'Bottom Back', maxTeams: 5 },
+                { name: 'Bottom Front', maxTeams: 5 }
             ]
         }
     },
@@ -147,20 +147,20 @@ const GAC_CONFIG = {
             maxSquadTeams: 9,
             maxFleetTeams: 2,
             territories: [
-                { name: 'Territory 1', maxTeams: 2 },
-                { name: 'Territory 2', maxTeams: 3 },
-                { name: 'Territory 3', maxTeams: 3 },
-                { name: 'Territory 4', maxTeams: 3 }
+                { name: 'Top Back', maxTeams: 2 },
+                { name: 'Top Front', maxTeams: 3 },
+                { name: 'Bottom Back', maxTeams: 3 },
+                { name: 'Bottom Front', maxTeams: 3 }
             ]
         },
         '3v3': {
             maxSquadTeams: 13,
             maxFleetTeams: 2,
             territories: [
-                { name: 'Territory 1', maxTeams: 2 },
-                { name: 'Territory 2', maxTeams: 4 },
-                { name: 'Territory 3', maxTeams: 5 },
-                { name: 'Territory 4', maxTeams: 4 }
+                { name: 'Top Back', maxTeams: 2 },
+                { name: 'Top Front', maxTeams: 4 },
+                { name: 'Bottom Back', maxTeams: 5 },
+                { name: 'Bottom Front', maxTeams: 4 }
             ]
         }
     },
@@ -169,20 +169,20 @@ const GAC_CONFIG = {
             maxSquadTeams: 7,
             maxFleetTeams: 2,
             territories: [
-                { name: 'Territory 1', maxTeams: 2 },
-                { name: 'Territory 2', maxTeams: 3 },
-                { name: 'Territory 3', maxTeams: 2 },
-                { name: 'Territory 4', maxTeams: 2 }
+                { name: 'Top Back', maxTeams: 2 },
+                { name: 'Top Front', maxTeams: 3 },
+                { name: 'Bottom Back', maxTeams: 2 },
+                { name: 'Bottom Front', maxTeams: 2 }
             ]
         },
         '3v3': {
             maxSquadTeams: 10,
             maxFleetTeams: 2,
             territories: [
-                { name: 'Territory 1', maxTeams: 2 },
-                { name: 'Territory 2', maxTeams: 3 },
-                { name: 'Territory 3', maxTeams: 4 },
-                { name: 'Territory 4', maxTeams: 3 }
+                { name: 'Top Back', maxTeams: 2 },
+                { name: 'Top Front', maxTeams: 3 },
+                { name: 'Bottom Back', maxTeams: 4 },
+                { name: 'Bottom Front', maxTeams: 3 }
             ]
         }
     },
@@ -191,20 +191,20 @@ const GAC_CONFIG = {
             maxSquadTeams: 5,
             maxFleetTeams: 1,
             territories: [
-                { name: 'Territory 1', maxTeams: 1 },
-                { name: 'Territory 2', maxTeams: 2 },
-                { name: 'Territory 3', maxTeams: 1 },
-                { name: 'Territory 4', maxTeams: 2 }
+                { name: 'Top Back', maxTeams: 1 },
+                { name: 'Top Front', maxTeams: 2 },
+                { name: 'Bottom Back', maxTeams: 1 },
+                { name: 'Bottom Front', maxTeams: 2 }
             ]
         },
         '3v3': {
             maxSquadTeams: 7,
             maxFleetTeams: 1,
             territories: [
-                { name: 'Territory 1', maxTeams: 1 },
-                { name: 'Territory 2', maxTeams: 2 },
-                { name: 'Territory 3', maxTeams: 3 },
-                { name: 'Territory 4', maxTeams: 2 }
+                { name: 'Top Back', maxTeams: 1 },
+                { name: 'Top Front', maxTeams: 2 },
+                { name: 'Bottom Back', maxTeams: 3 },
+                { name: 'Bottom Front', maxTeams: 2 }
             ]
         }
     },
@@ -213,20 +213,20 @@ const GAC_CONFIG = {
             maxSquadTeams: 3,
             maxFleetTeams: 1,
             territories: [
-                { name: 'Territory 1', maxTeams: 1 },
-                { name: 'Territory 2', maxTeams: 1 },
-                { name: 'Territory 3', maxTeams: 1 },
-                { name: 'Territory 4', maxTeams: 1 }
+                { name: 'Top Back', maxTeams: 1 },
+                { name: 'Top Front', maxTeams: 1 },
+                { name: 'Bottom Back', maxTeams: 1 },
+                { name: 'Bottom Front', maxTeams: 1 }
             ]
         },
         '3v3': {
             maxSquadTeams: 3,
             maxFleetTeams: 1,
             territories: [
-                { name: 'Territory 1', maxTeams: 1 },
-                { name: 'Territory 2', maxTeams: 1 },
-                { name: 'Territory 3', maxTeams: 1 },
-                { name: 'Territory 4', maxTeams: 1 }
+                { name: 'Top Back', maxTeams: 1 },
+                { name: 'Top Front', maxTeams: 1 },
+                { name: 'Bottom Back', maxTeams: 1 },
+                { name: 'Bottom Front', maxTeams: 1 }
             ]
         }
     }
