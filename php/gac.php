@@ -1535,8 +1535,14 @@ function toggleCharacterSafe(baseId, name, image) {
 function toggleCharacter(character) {
     // Fleet teams: leader must be Capital, members must be regular ships
     if (currentTeamContext && currentTeamContext.type === 'fleet') {
-        const isCapital = isCapitalShip(character);
-        const isRegularShip = isShip(character) && !isCapital;
+        // Find the full character data from allCharacters to check ship type
+        const fullChar = allCharacters.find(c => {
+            const charId = c.base_id || c.id || '';
+            return charId === character.base_id;
+        }) || character;
+        
+        const isCapital = isCapitalShip(fullChar);
+        const isRegularShip = isShip(fullChar) && !isCapital;
         
         // Check if already selected
         const isLeader = selectedLeader && selectedLeader.id === character.base_id;
