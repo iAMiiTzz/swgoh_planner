@@ -477,15 +477,25 @@ function updateCounts() {
     const format = document.getElementById('format').value;
     const config = GAC_CONFIG[league][format];
     
-    // Count defense teams (teams with characters)
+    // Count defense teams (teams with characters, excluding Top Back which is ships only)
     let defenseCount = 0;
     document.querySelectorAll('#defenseTerritories .team-characters-display').forEach(display => {
+        // Skip Top Back territory (check if parent territory card contains "Top Back")
+        const territoryCard = display.closest('.territory-card');
+        if (territoryCard && territoryCard.querySelector('h4') && territoryCard.querySelector('h4').textContent === 'Top Back') {
+            return;
+        }
         if (display.querySelector('.character-image')) defenseCount++;
     });
     
-    // Count offense teams (by territory)
+    // Count offense teams (by territory, excluding Top Back which is ships only)
     let offenseCount = 0;
     document.querySelectorAll('#offenseTerritories .team-characters-display').forEach(display => {
+        // Skip Top Back territory (check if parent territory card contains "Top Back")
+        const territoryCard = display.closest('.territory-card');
+        if (territoryCard && territoryCard.querySelector('h4') && territoryCard.querySelector('h4').textContent === 'Top Back') {
+            return;
+        }
         if (display.querySelector('.character-image')) offenseCount++;
     });
     
