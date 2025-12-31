@@ -374,14 +374,23 @@
     font-size: 0.7rem;
 }
 
-.selected-leader-section,
-.selected-members-section {
-    margin-bottom: 10px;
+.selected-team-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
 }
 
-.selected-leader-section:last-child,
-.selected-members-section:last-child {
+.selected-leader-section,
+.selected-members-section {
+    flex: 1;
     margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+    .selected-team-row {
+        flex-direction: column;
+        gap: 10px;
+    }
 }
 
 .selected-label {

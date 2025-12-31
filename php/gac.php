@@ -89,24 +89,26 @@ require_once 'includes/header.php';
             </div>
             <div id="selectedCharacters" class="selected-characters-section">
                 <div class="selected-section-header">Selected Team</div>
-                <div class="selected-leader-section">
-                    <div class="selected-label">
-                        <span class="leader-icon">👑</span>
-                        Leader <span class="required-badge">Required</span>
+                <div class="selected-team-row">
+                    <div class="selected-leader-section">
+                        <div class="selected-label">
+                            <span class="leader-icon">👑</span>
+                            Leader <span class="required-badge">Required</span>
+                        </div>
+                        <div id="selectedLeader" class="selected-leader-container">
+                            <span class="empty-state">No leader selected</span>
+                        </div>
                     </div>
-                    <div id="selectedLeader" class="selected-leader-container">
-                        <span class="empty-state">No leader selected</span>
+                    <div class="selected-members-section">
+                        <div class="selected-label">
+                            <span class="members-icon">⚔️</span>
+                            Members
+                        </div>
+                        <div id="selectedMembers" class="selected-members-container">
+                            <span class="empty-state">No members selected</span>
+                        </div>
+                        <div id="memberLimit" class="member-limit-indicator"></div>
                     </div>
-                </div>
-                <div class="selected-members-section">
-                    <div class="selected-label">
-                        <span class="members-icon">⚔️</span>
-                        Members
-                    </div>
-                    <div id="selectedMembers" class="selected-members-container">
-                        <span class="empty-state">No members selected</span>
-                    </div>
-                    <div id="memberLimit" class="member-limit-indicator"></div>
                 </div>
             </div>
         </div>
