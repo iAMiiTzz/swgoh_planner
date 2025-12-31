@@ -57,14 +57,6 @@ require_once 'includes/header.php';
                 <!-- Territories will be generated here -->
             </div>
         </div>
-        
-        <!-- Fleet Section -->
-        <div class="gac-section">
-            <h3>Fleet</h3>
-            <div id="fleetTeams" class="fleet-teams">
-                <!-- Fleet teams will be generated here -->
-            </div>
-        </div>
     </div>
     
     <div class="card" style="margin-top: 20px;">
@@ -344,9 +336,6 @@ function updateLayout() {
     // Generate offense territories (same structure as defense)
     generateOffenseTerritories(config.territories);
     
-    // Generate fleet teams
-    generateFleetTeams(config.maxFleetTeams);
-    
     updateCounts();
     
     // Auto-save when layout changes (territories are regenerated)
@@ -363,12 +352,24 @@ function generateDefenseTerritories(territories) {
         
         // Top Back (index 0) is ships only, no character teams
         if (territory.name === 'Top Back') {
+            const league = document.getElementById('league').value;
+            const format = document.getElementById('format').value;
+            const config = GAC_CONFIG[league][format];
+            const maxFleetTeams = config.maxFleetTeams;
+            
             territoryDiv.innerHTML = `
-                <h4>${territory.name}</h4>
+                <h4>${territory.name} (Fleet)</h4>
                 <div class="territory-teams" data-territory="${index}">
-                    <div style="text-align: center; padding: 20px; color: #718096; font-style: italic;">
-                        Ships only - use Fleet Teams section below
-                    </div>
+                    ${Array(maxFleetTeams).fill(0).map((_, i) => `
+                        <div class="team-slot" data-territory="${index}" data-slot="${i}">
+                            <div class="team-header">Fleet ${i + 1}</div>
+                            <button type="button" class="team-select-button" onclick="openCharacterModal('fleet', ${index}, ${i})">
+                                <div class="team-characters-display" id="fleet-defense-${i}">
+                                    <span class="team-select-placeholder">Select Fleet</span>
+                                </div>
+                            </button>
+                        </div>
+                    `).join('')}
                 </div>
             `;
         } else {
@@ -425,12 +426,24 @@ function generateOffenseTerritories(territories) {
         
         // Top Back on offense (which is index 1, displays as "Top Back") is ships only
         if (displayName === 'Top Back') {
+            const league = document.getElementById('league').value;
+            const format = document.getElementById('format').value;
+            const config = GAC_CONFIG[league][format];
+            const maxFleetTeams = config.maxFleetTeams;
+            
             territoryDiv.innerHTML = `
-                <h4>${displayName}</h4>
+                <h4>${displayName} (Fleet)</h4>
                 <div class="territory-teams" data-territory="${index}">
-                    <div style="text-align: center; padding: 20px; color: #718096; font-style: italic;">
-                        Ships only - use Fleet Teams section below
-                    </div>
+                    ${Array(maxFleetTeams).fill(0).map((_, i) => `
+                        <div class="team-slot" data-territory="${index}" data-slot="${i}">
+                            <div class="team-header">Fleet ${i + 1}</div>
+                            <button type="button" class="team-select-button" onclick="openCharacterModal('fleet', ${index}, ${i})">
+                                <div class="team-characters-display" id="fleet-offense-${i}">
+                                    <span class="team-select-placeholder">Select Fleet</span>
+                                </div>
+                            </button>
+                        </div>
+                    `).join('')}
                 </div>
             `;
         } else {
@@ -499,10 +512,25 @@ function updateCounts() {
         if (display.querySelector('.character-image')) offenseCount++;
     });
     
-    // Count fleet teams
+    // Count fleet teams from Top Back sections
     let fleetCount = 0;
-    document.querySelectorAll('#fleetTeams .team-characters-display').forEach(display => {
-        if (display.querySelector('.character-image')) fleetCount++;
+    // Count from defense Top Back
+    document.querySelectorAll('#defenseTerritories .territory-card').forEach(card => {
+        const h4 = card.querySelector('h4');
+        if (h4 && h4.textContent.includes('Top Back')) {
+            card.querySelectorAll('.team-characters-display').forEach(display => {
+                if (display.querySelector('.character-image')) fleetCount++;
+            });
+        }
+    });
+    // Count from offense Top Back
+    document.querySelectorAll('#offenseTerritories .territory-card').forEach(card => {
+        const h4 = card.querySelector('h4');
+        if (h4 && h4.textContent.includes('Top Back')) {
+            card.querySelectorAll('.team-characters-display').forEach(display => {
+                if (display.querySelector('.character-image')) fleetCount++;
+            });
+        }
     });
     
     document.getElementById('squadTeamsUsed').textContent = defenseCount + offenseCount;
@@ -632,10 +660,25 @@ function collectPlanData() {
         });
     });
     
-    // Collect fleet teams
+    // Collect fleet teams from Top Back sections
     const fleetTeams = [];
+    // Collect from defense Top Back
     for (let i = 0; i < config.maxFleetTeams; i++) {
-        const display = document.getElementById(`fleet-${i}`);
+        const display = document.getElementById(`fleet-defense-${i}`);
+        if (display) {
+            const characters = Array.from(display.querySelectorAll('.character-image')).map(img => ({
+                id: img.dataset.characterId,
+                name: img.dataset.characterName,
+                image: img.src
+            }));
+            if (characters.length > 0) {
+                fleetTeams.push(characters);
+            }
+        }
+    }
+    // Collect from offense Top Back
+    for (let i = 0; i < config.maxFleetTeams; i++) {
+        const display = document.getElementById(`fleet-offense-${i}`);
         if (display) {
             const characters = Array.from(display.querySelectorAll('.character-image')).map(img => ({
                 id: img.dataset.characterId,
@@ -1027,23 +1070,41 @@ function loadPlanData(plan) {
         }
     }
     
-    // Load fleet teams
+    // Load fleet teams into Top Back sections
     if (plan.fleet_teams && Array.isArray(plan.fleet_teams)) {
+        const league = document.getElementById('league').value;
+        const format = document.getElementById('format').value;
+        const config = GAC_CONFIG[league][format];
+        const maxFleetTeams = config.maxFleetTeams;
+        
+        // Split fleet teams between defense and offense
         plan.fleet_teams.forEach((team, index) => {
-            const display = document.getElementById(`fleet-${index}`);
-            if (display && Array.isArray(team)) {
-                display.innerHTML = '';
-                team.forEach(char => {
-                    const img = document.createElement('img');
-                    img.className = 'character-image';
-                    img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
-                    img.alt = char.name;
-                    img.dataset.characterId = char.id;
-                    img.dataset.characterName = char.name;
-                    img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                    img.title = char.name;
-                    display.appendChild(img);
-                });
+            if (Array.isArray(team) && team.length > 0) {
+                // First half goes to defense, second half to offense
+                const isDefense = index < maxFleetTeams;
+                const fleetIndex = isDefense ? index : index - maxFleetTeams;
+                const displayId = isDefense ? `fleet-defense-${fleetIndex}` : `fleet-offense-${fleetIndex}`;
+                const display = document.getElementById(displayId);
+                
+                if (display) {
+                    display.innerHTML = '';
+                    team.forEach(char => {
+                        const img = document.createElement('img');
+                        img.className = 'character-image';
+                        img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
+                        img.alt = char.name;
+                        img.dataset.characterId = char.id;
+                        img.dataset.characterName = char.name;
+                        img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                        img.title = char.name;
+                        img.style.cursor = 'pointer';
+                        img.onclick = function() {
+                            const territoryIndex = isDefense ? 0 : 1; // Top Back is index 0 for defense, index 1 for offense
+                            openCharacterModal('fleet', territoryIndex, fleetIndex);
+                        };
+                        display.appendChild(img);
+                    });
+                }
             }
         });
     }
@@ -1126,16 +1187,26 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
         selectedMembers = [];
         
         // If editing defense, get characters already used in other defense teams
+        // Fleet teams don't need duplicate checking
         if (type === 'defense') {
             usedDefenseCharacters = getUsedDefenseCharacters(territoryOrSlot, slot);
+        } else if (type === 'fleet') {
+            usedDefenseCharacters = new Map(); // No duplicate checking for fleet
         } else {
             usedDefenseCharacters = new Map();
         }
         
         // Load existing characters if any
-        const displayId = slot !== null 
-            ? `${type}-${territoryOrSlot}-${slot}`
-            : `${type}-${territoryOrSlot}`;
+        let displayId;
+        if (type === 'fleet') {
+            // Fleet teams from Top Back sections
+            const isDefense = territoryOrSlot === 0; // Top Back defense is index 0
+            displayId = isDefense ? `fleet-defense-${slot}` : `fleet-offense-${slot}`;
+        } else {
+            displayId = slot !== null 
+                ? `${type}-${territoryOrSlot}-${slot}`
+                : `${type}-${territoryOrSlot}`;
+        }
         const display = document.getElementById(displayId);
         if (display) {
             // Find leader (first image with leader class, or first image if no class)
@@ -1191,7 +1262,11 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
         }, 100);
         document.getElementById('characterSearch').value = '';
         updateSelectedList();
-        updateMemberLimit();
+        
+        // Fleet teams don't need member limits
+        if (type !== 'fleet') {
+            updateMemberLimit();
+        }
         
         if (allCharacters.length === 0) {
             loadCharacters();
@@ -1453,67 +1528,101 @@ function removeMember(characterId) {
 function confirmCharacterSelection() {
     if (!currentTeamContext) return;
     
-    const format = document.getElementById('format').value;
-    const maxMembers = format === '5v5' ? 4 : 2;
-    
-    // Validate team composition
-    if (!selectedLeader) {
-        alert('Please select a leader for the team');
-        return;
-    }
-    
-    if (selectedMembers.length === 0) {
-        alert('Please select at least one member for the team');
-        return;
-    }
-    
-    if (selectedMembers.length > maxMembers) {
-        alert(`Maximum ${maxMembers} members allowed for ${format} format`);
-        return;
-    }
-    
     const { type, territory, slot } = currentTeamContext;
-    const displayId = slot !== null 
-        ? `${type}-${territory}-${slot}`
-        : `${type}-${territory}`;
-    const display = document.getElementById(displayId);
     
-    if (display) {
-        display.innerHTML = '';
+    // Fleet teams don't need leader/member structure - just a list of characters
+    if (type === 'fleet') {
+        const isDefense = territory === 0; // Top Back defense is index 0
+        const displayId = isDefense ? `fleet-defense-${slot}` : `fleet-offense-${slot}`;
+        const display = document.getElementById(displayId);
         
-        // Display leader first
-        if (selectedLeader) {
-            const leaderImg = document.createElement('img');
-            leaderImg.className = 'character-image leader';
-            leaderImg.src = selectedLeader.image;
-            leaderImg.alt = selectedLeader.name;
-            leaderImg.dataset.characterId = selectedLeader.id;
-            leaderImg.dataset.characterName = selectedLeader.name;
-            leaderImg.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-            leaderImg.title = selectedLeader.name + ' (Leader) - Click to edit';
-            leaderImg.style.cursor = 'pointer';
-            leaderImg.onclick = function() {
-                openCharacterModal(type, territory, slot);
-            };
-            display.appendChild(leaderImg);
+        if (display) {
+            display.innerHTML = '';
+            
+            // Combine leader and members for fleet (no distinction)
+            const allCharacters = [];
+            if (selectedLeader) allCharacters.push(selectedLeader);
+            allCharacters.push(...selectedMembers);
+            
+            allCharacters.forEach(char => {
+                const img = document.createElement('img');
+                img.className = 'character-image';
+                img.src = char.image;
+                img.alt = char.name;
+                img.dataset.characterId = char.id;
+                img.dataset.characterName = char.name;
+                img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                img.title = char.name + ' - Click to edit';
+                img.style.cursor = 'pointer';
+                img.onclick = function() {
+                    openCharacterModal(type, territory, slot);
+                };
+                display.appendChild(img);
+            });
+        }
+    } else {
+        // Character teams need leader + members structure
+        const format = document.getElementById('format').value;
+        const maxMembers = format === '5v5' ? 4 : 2;
+        
+        // Validate team composition
+        if (!selectedLeader) {
+            alert('Please select a leader for the team');
+            return;
         }
         
-        // Display members
-        selectedMembers.forEach(char => {
-            const img = document.createElement('img');
-            img.className = 'character-image member';
-            img.src = char.image;
-            img.alt = char.name;
-            img.dataset.characterId = char.id;
-            img.dataset.characterName = char.name;
-            img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-            img.title = char.name + ' - Click to edit';
-            img.style.cursor = 'pointer';
-            img.onclick = function() {
-                openCharacterModal(type, territory, slot);
-            };
-            display.appendChild(img);
-        });
+        if (selectedMembers.length === 0) {
+            alert('Please select at least one member for the team');
+            return;
+        }
+        
+        if (selectedMembers.length > maxMembers) {
+            alert(`Maximum ${maxMembers} members allowed for ${format} format`);
+            return;
+        }
+        
+        const displayId = slot !== null 
+            ? `${type}-${territory}-${slot}`
+            : `${type}-${territory}`;
+        const display = document.getElementById(displayId);
+        
+        if (display) {
+            display.innerHTML = '';
+            
+            // Display leader first
+            if (selectedLeader) {
+                const leaderImg = document.createElement('img');
+                leaderImg.className = 'character-image leader';
+                leaderImg.src = selectedLeader.image;
+                leaderImg.alt = selectedLeader.name;
+                leaderImg.dataset.characterId = selectedLeader.id;
+                leaderImg.dataset.characterName = selectedLeader.name;
+                leaderImg.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                leaderImg.title = selectedLeader.name + ' (Leader) - Click to edit';
+                leaderImg.style.cursor = 'pointer';
+                leaderImg.onclick = function() {
+                    openCharacterModal(type, territory, slot);
+                };
+                display.appendChild(leaderImg);
+            }
+            
+            // Display members
+            selectedMembers.forEach(char => {
+                const img = document.createElement('img');
+                img.className = 'character-image member';
+                img.src = char.image;
+                img.alt = char.name;
+                img.dataset.characterId = char.id;
+                img.dataset.characterName = char.name;
+                img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                img.title = char.name + ' - Click to edit';
+                img.style.cursor = 'pointer';
+                img.onclick = function() {
+                    openCharacterModal(type, territory, slot);
+                };
+                display.appendChild(img);
+            });
+        }
     }
     
     updateCounts();
