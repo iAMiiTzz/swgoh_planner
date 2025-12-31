@@ -600,7 +600,11 @@ function loadPlanData(plan) {
                                 img.dataset.characterId = team.leader.id;
                                 img.dataset.characterName = team.leader.name;
                                 img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                                img.title = team.leader.name + ' (Leader)';
+                                img.title = team.leader.name + ' (Leader) - Click to edit';
+                                img.style.cursor = 'pointer';
+                                img.onclick = function() {
+                                    openCharacterModal('defense', tIndex, teamIndex);
+                                };
                                 display.appendChild(img);
                             }
                             
@@ -613,7 +617,11 @@ function loadPlanData(plan) {
                                     img.dataset.characterId = char.id;
                                     img.dataset.characterName = char.name;
                                     img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                                    img.title = char.name;
+                                    img.title = char.name + ' - Click to edit';
+                                    img.style.cursor = 'pointer';
+                                    img.onclick = function() {
+                                        openCharacterModal('defense', tIndex, teamIndex);
+                                    };
                                     display.appendChild(img);
                                 });
                             }
@@ -627,7 +635,11 @@ function loadPlanData(plan) {
                                 img.dataset.characterId = char.id;
                                 img.dataset.characterName = char.name;
                                 img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                                img.title = charIndex === 0 ? char.name + ' (Leader)' : char.name;
+                                img.title = charIndex === 0 ? char.name + ' (Leader) - Click to edit' : char.name + ' - Click to edit';
+                                img.style.cursor = 'pointer';
+                                img.onclick = function() {
+                                    openCharacterModal('defense', tIndex, teamIndex);
+                                };
                                 display.appendChild(img);
                             });
                         }
@@ -660,7 +672,11 @@ function loadPlanData(plan) {
                                     img.dataset.characterId = team.leader.id;
                                     img.dataset.characterName = team.leader.name;
                                     img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                                    img.title = team.leader.name + ' (Leader)';
+                                    img.title = team.leader.name + ' (Leader) - Click to edit';
+                                    img.style.cursor = 'pointer';
+                                    img.onclick = function() {
+                                        openCharacterModal('offense', tIndex, teamIndex);
+                                    };
                                     display.appendChild(img);
                                 }
                                 
@@ -673,7 +689,11 @@ function loadPlanData(plan) {
                                         img.dataset.characterId = char.id;
                                         img.dataset.characterName = char.name;
                                         img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                                        img.title = char.name;
+                                        img.title = char.name + ' - Click to edit';
+                                        img.style.cursor = 'pointer';
+                                        img.onclick = function() {
+                                            openCharacterModal('offense', tIndex, teamIndex);
+                                        };
                                         display.appendChild(img);
                                     });
                                 }
@@ -687,7 +707,11 @@ function loadPlanData(plan) {
                                     img.dataset.characterId = char.id;
                                     img.dataset.characterName = char.name;
                                     img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                                    img.title = charIndex === 0 ? char.name + ' (Leader)' : char.name;
+                                    img.title = charIndex === 0 ? char.name + ' (Leader) - Click to edit' : char.name + ' - Click to edit';
+                                    img.style.cursor = 'pointer';
+                                    img.onclick = function() {
+                                        openCharacterModal('offense', tIndex, teamIndex);
+                                    };
                                     display.appendChild(img);
                                 });
                             }
@@ -726,7 +750,11 @@ function loadPlanData(plan) {
                         img.dataset.characterId = char.id;
                         img.dataset.characterName = char.name;
                         img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                        img.title = charIndex === 0 ? char.name + ' (Leader)' : char.name;
+                        img.title = charIndex === 0 ? char.name + ' (Leader) - Click to edit' : char.name + ' - Click to edit';
+                        img.style.cursor = 'pointer';
+                        img.onclick = function() {
+                            openCharacterModal('offense', territoryIndex, teamSlotIndex);
+                        };
                         display.appendChild(img);
                     });
                 }
@@ -770,7 +798,8 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
     
     try {
         currentTeamContext = { type, territory: territoryOrSlot, slot };
-        selectedCharacters = [];
+        selectedLeader = null;
+        selectedMembers = [];
         
         // Load existing characters if any
         const displayId = slot !== null 
@@ -778,13 +807,38 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
             : `${type}-${territoryOrSlot}`;
         const display = document.getElementById(displayId);
         if (display) {
-            display.querySelectorAll('.character-image').forEach(img => {
-                selectedCharacters.push({
-                    id: img.dataset.characterId,
-                    name: img.dataset.characterName,
-                    image: img.src
+            // Find leader (first image with leader class, or first image if no class)
+            const leaderImg = display.querySelector('.character-image.leader') || 
+                             (display.querySelectorAll('.character-image').length > 0 ? display.querySelectorAll('.character-image')[0] : null);
+            if (leaderImg) {
+                selectedLeader = {
+                    id: leaderImg.dataset.characterId,
+                    name: leaderImg.dataset.characterName,
+                    image: leaderImg.src
+                };
+            }
+            
+            // Find members (all images with member class, or all images after first if no class)
+            const memberImgs = display.querySelectorAll('.character-image.member');
+            if (memberImgs.length > 0) {
+                memberImgs.forEach(img => {
+                    selectedMembers.push({
+                        id: img.dataset.characterId,
+                        name: img.dataset.characterName,
+                        image: img.src
+                    });
                 });
-            });
+            } else if (display.querySelectorAll('.character-image').length > 1) {
+                // Fallback: if no member class, treat all after first as members
+                const allImgs = Array.from(display.querySelectorAll('.character-image'));
+                allImgs.slice(1).forEach(img => {
+                    selectedMembers.push({
+                        id: img.dataset.characterId,
+                        name: img.dataset.characterName,
+                        image: img.src
+                    });
+                });
+            }
         }
         
         const modal = document.getElementById('characterModal');
@@ -806,6 +860,7 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
         }, 100);
         document.getElementById('characterSearch').value = '';
         updateSelectedList();
+        updateMemberLimit();
         
         if (allCharacters.length === 0) {
             loadCharacters();
@@ -1075,7 +1130,11 @@ function confirmCharacterSelection() {
             leaderImg.dataset.characterId = selectedLeader.id;
             leaderImg.dataset.characterName = selectedLeader.name;
             leaderImg.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-            leaderImg.title = selectedLeader.name + ' (Leader)';
+            leaderImg.title = selectedLeader.name + ' (Leader) - Click to edit';
+            leaderImg.style.cursor = 'pointer';
+            leaderImg.onclick = function() {
+                openCharacterModal(type, territory, slot);
+            };
             display.appendChild(leaderImg);
         }
         
@@ -1088,7 +1147,11 @@ function confirmCharacterSelection() {
             img.dataset.characterId = char.id;
             img.dataset.characterName = char.name;
             img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-            img.title = char.name;
+            img.title = char.name + ' - Click to edit';
+            img.style.cursor = 'pointer';
+            img.onclick = function() {
+                openCharacterModal(type, territory, slot);
+            };
             display.appendChild(img);
         });
     }
