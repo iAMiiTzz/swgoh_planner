@@ -75,37 +75,44 @@ require_once 'includes/header.php';
 
 <!-- Character Selection Modal -->
 <div id="characterModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+    <div class="modal-content character-modal-content">
         <div class="modal-header">
-            <h3>Select Characters</h3>
+            <h3>Select Team</h3>
             <button class="modal-close" onclick="closeCharacterModal()">&times;</button>
         </div>
         <div class="modal-body">
-            <div style="margin-bottom: 15px;">
-                <input type="text" id="characterSearch" placeholder="Search characters..." style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px;">
+            <div class="character-search-wrapper">
+                <input type="text" id="characterSearch" class="character-search-input" placeholder="Search characters...">
             </div>
-            <div id="characterGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; max-height: 500px; overflow-y: auto; padding: 10px;">
+            <div id="characterGrid" class="character-grid">
                 <!-- Characters will be loaded here -->
             </div>
-            <div id="selectedCharacters" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
-                <div style="font-weight: 600; margin-bottom: 10px;">Selected Characters:</div>
-                <div style="margin-bottom: 10px;">
-                    <div style="font-weight: 500; margin-bottom: 5px; color: #667eea;">Leader (1 required):</div>
-                    <div id="selectedLeader" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 50px; margin-bottom: 15px;">
-                        <span style="color: #718096;">No leader selected</span>
+            <div id="selectedCharacters" class="selected-characters-section">
+                <div class="selected-section-header">Selected Team</div>
+                <div class="selected-leader-section">
+                    <div class="selected-label">
+                        <span class="leader-icon">👑</span>
+                        Leader <span class="required-badge">Required</span>
+                    </div>
+                    <div id="selectedLeader" class="selected-leader-container">
+                        <span class="empty-state">No leader selected</span>
                     </div>
                 </div>
-                    <div style="font-weight: 500; margin-bottom: 5px; color: #2d3748;">Members:</div>
-                    <div id="selectedMembers" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 60px;">
-                        <span style="color: #718096;">No members selected</span>
+                <div class="selected-members-section">
+                    <div class="selected-label">
+                        <span class="members-icon">⚔️</span>
+                        Members
                     </div>
-                    <div id="memberLimit" style="margin-top: 8px; font-size: 0.85rem; color: #718096;"></div>
+                    <div id="selectedMembers" class="selected-members-container">
+                        <span class="empty-state">No members selected</span>
+                    </div>
+                    <div id="memberLimit" class="member-limit-indicator"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" onclick="closeCharacterModal()" class="btn-secondary">Cancel</button>
-                <button type="button" onclick="confirmCharacterSelection()" class="btn-primary">Confirm Selection</button>
-            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" onclick="closeCharacterModal()" class="btn-secondary">Cancel</button>
+            <button type="button" onclick="confirmCharacterSelection()" class="btn-primary">Confirm Selection</button>
         </div>
     </div>
 </div>
@@ -825,7 +832,7 @@ function loadCharacters() {
         return;
     }
     
-    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Loading characters...</div>';
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #718096;"><div style="font-size: 1.2rem; margin-bottom: 8px;">⏳</div><div>Loading characters...</div></div>';
     
     console.log('Loading characters from API...');
     
@@ -892,7 +899,7 @@ function displayCharacters() {
     });
     
     if (filteredCharacters.length === 0) {
-        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #718096;">No characters found</div>';
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #718096;"><div style="font-size: 1.2rem; margin-bottom: 8px;">🔍</div><div>No characters found</div><div style="font-size: 0.85rem; margin-top: 8px;">Try a different search term</div></div>';
         return;
     }
     
@@ -979,11 +986,11 @@ function updateSelectedList() {
             <div class="selected-character leader-character">
                 <img src="${selectedLeader.image}" alt="${selectedLeader.name}" onerror="this.src='https://via.placeholder.com/40?text=?'" />
                 <span>${selectedLeader.name}</span>
-                <button type="button" onclick="removeLeader()" style="background: #e53e3e; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; margin-left: 5px;">×</button>
+                <button type="button" onclick="removeLeader()">×</button>
             </div>
         `;
     } else {
-        leaderDiv.innerHTML = '<span style="color: #718096;">No leader selected</span>';
+        leaderDiv.innerHTML = '<span class="empty-state">No leader selected</span>';
     }
     
     if (selectedMembers.length > 0) {
@@ -991,11 +998,11 @@ function updateSelectedList() {
             <div class="selected-character">
                 <img src="${char.image}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/40?text=?'" />
                 <span>${char.name}</span>
-                <button type="button" onclick="removeMember('${char.id}')" style="background: #e53e3e; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; margin-left: 5px;">×</button>
+                <button type="button" onclick="removeMember('${char.id}')">×</button>
             </div>
         `).join('');
     } else {
-        membersDiv.innerHTML = '<span style="color: #718096;">No members selected</span>';
+        membersDiv.innerHTML = '<span class="empty-state">No members selected</span>';
     }
     
     updateMemberLimit();
