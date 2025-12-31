@@ -1335,8 +1335,29 @@ function displayCharacters() {
     const searchInput = document.getElementById('characterSearch');
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     
+    // Filter for ships only if selecting fleet teams
+    const isFleetSelection = currentTeamContext && currentTeamContext.type === 'fleet';
+    
     filteredCharacters = allCharacters.filter(char => {
         if (!char) return false;
+        
+        // If selecting fleet, only show ships
+        if (isFleetSelection) {
+            // Ships typically have combat_type === 2, or category === 'ship', or base_id contains 'SHIP'
+            const combatType = char.combat_type;
+            const category = char.category || char.unit_category;
+            const baseId = (char.base_id || char.id || '').toUpperCase();
+            
+            // Check if it's a ship
+            const isShip = combatType === 2 || 
+                          category === 'ship' || 
+                          category === 'SHIP' ||
+                          baseId.includes('SHIP') ||
+                          baseId.includes('CAPITAL');
+            
+            if (!isShip) return false;
+        }
+        
         const name = char.name || char.unit_name || '';
         const baseId = char.base_id || char.id || '';
         return name.toLowerCase().includes(searchTerm) || baseId.toLowerCase().includes(searchTerm);
