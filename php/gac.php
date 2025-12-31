@@ -1082,27 +1082,68 @@ function loadPlanData(plan) {
         
         // Split fleet teams between defense and offense
         plan.fleet_teams.forEach((team, index) => {
-            if (Array.isArray(team) && team.length > 0) {
-                // First half goes to defense, second half to offense
-                const isDefense = index < maxFleetTeams;
-                const fleetIndex = isDefense ? index : index - maxFleetTeams;
-                const displayId = isDefense ? `fleet-defense-${fleetIndex}` : `fleet-offense-${fleetIndex}`;
-                const display = document.getElementById(displayId);
+            // First half goes to defense, second half to offense
+            const isDefense = index < maxFleetTeams;
+            const fleetIndex = isDefense ? index : index - maxFleetTeams;
+            const displayId = isDefense ? `fleet-defense-${fleetIndex}` : `fleet-offense-${fleetIndex}`;
+            const display = document.getElementById(displayId);
+            
+            if (display) {
+                display.innerHTML = '';
                 
-                if (display) {
-                    display.innerHTML = '';
-                    team.forEach(char => {
+                // Handle new format (leader + members)
+                if (team.leader || (team.members && Array.isArray(team.members))) {
+                    // New format with leader/member structure
+                    if (team.leader) {
                         const img = document.createElement('img');
-                        img.className = 'character-image';
+                        img.className = 'character-image leader';
+                        img.src = team.leader.image || `https://swgoh.gg/static/img/assets/tex.char_${team.leader.id}.png`;
+                        img.alt = team.leader.name;
+                        img.dataset.characterId = team.leader.id;
+                        img.dataset.characterName = team.leader.name;
+                        img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                        img.title = team.leader.name + ' (Capital) - Click to edit';
+                        img.style.cursor = 'pointer';
+                        img.onclick = function() {
+                            const territoryIndex = isDefense ? 0 : 1; // Top Back is index 0 for defense, index 1 for offense
+                            openCharacterModal('fleet', territoryIndex, fleetIndex);
+                        };
+                        display.appendChild(img);
+                    }
+                    
+                    if (team.members && Array.isArray(team.members)) {
+                        team.members.forEach(char => {
+                            const img = document.createElement('img');
+                            img.className = 'character-image member';
+                            img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
+                            img.alt = char.name;
+                            img.dataset.characterId = char.id;
+                            img.dataset.characterName = char.name;
+                            img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                            img.title = char.name + ' - Click to edit';
+                            img.style.cursor = 'pointer';
+                            img.onclick = function() {
+                                const territoryIndex = isDefense ? 0 : 1;
+                                openCharacterModal('fleet', territoryIndex, fleetIndex);
+                            };
+                            display.appendChild(img);
+                        });
+                    }
+                } else if (Array.isArray(team) && team.length > 0) {
+                    // Old format - just array of characters (backward compatibility)
+                    // First character is treated as leader (Capital), rest as members
+                    team.forEach((char, charIndex) => {
+                        const img = document.createElement('img');
+                        img.className = charIndex === 0 ? 'character-image leader' : 'character-image member';
                         img.src = char.image || `https://swgoh.gg/static/img/assets/tex.char_${char.id}.png`;
                         img.alt = char.name;
                         img.dataset.characterId = char.id;
                         img.dataset.characterName = char.name;
                         img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                        img.title = char.name;
+                        img.title = charIndex === 0 ? char.name + ' (Capital) - Click to edit' : char.name + ' - Click to edit';
                         img.style.cursor = 'pointer';
                         img.onclick = function() {
-                            const territoryIndex = isDefense ? 0 : 1; // Top Back is index 0 for defense, index 1 for offense
+                            const territoryIndex = isDefense ? 0 : 1;
                             openCharacterModal('fleet', territoryIndex, fleetIndex);
                         };
                         display.appendChild(img);
