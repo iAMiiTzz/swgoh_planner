@@ -794,6 +794,52 @@ let selectedLeader = null;
 let selectedMembers = [];
 let usedDefenseCharacters = new Set(); // Track characters already used in defense
 
+// Get all characters currently used in defense territories (excluding current team)
+function getUsedDefenseCharacters(excludeTerritory, excludeSlot) {
+    const used = new Set();
+    const league = document.getElementById('league').value;
+    const format = document.getElementById('format').value;
+    const config = GAC_CONFIG[league][format];
+    
+    config.territories.forEach((territory, tIndex) => {
+        for (let i = 0; i < territory.maxTeams; i++) {
+            // Skip the current team being edited
+            if (tIndex === excludeTerritory && i === excludeSlot) {
+                continue;
+            }
+            
+            const display = document.getElementById(`defense-${tIndex}-${i}`);
+            if (display) {
+                // Get leader
+                const leaderImg = display.querySelector('.character-image.leader');
+                if (leaderImg && leaderImg.dataset.characterId) {
+                    used.add(leaderImg.dataset.characterId);
+                }
+                
+                // Get members
+                const memberImgs = display.querySelectorAll('.character-image.member');
+                memberImgs.forEach(img => {
+                    if (img.dataset.characterId) {
+                        used.add(img.dataset.characterId);
+                    }
+                });
+                
+                // Fallback for old format (no leader/member classes)
+                if (!leaderImg && memberImgs.length === 0) {
+                    const allImgs = display.querySelectorAll('.character-image');
+                    allImgs.forEach(img => {
+                        if (img.dataset.characterId) {
+                            used.add(img.dataset.characterId);
+                        }
+                    });
+                }
+            }
+        }
+    });
+    
+    return used;
+}
+
 function openCharacterModal(type, territoryOrSlot, slot = null) {
     console.log('openCharacterModal called', type, territoryOrSlot, slot);
     
@@ -801,6 +847,13 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
         currentTeamContext = { type, territory: territoryOrSlot, slot };
         selectedLeader = null;
         selectedMembers = [];
+        
+        // If editing defense, get characters already used in other defense teams
+        if (type === 'defense') {
+            usedDefenseCharacters = getUsedDefenseCharacters(territoryOrSlot, slot);
+        } else {
+            usedDefenseCharacters = new Set();
+        }
         
         // Load existing characters if any
         const displayId = slot !== null 
