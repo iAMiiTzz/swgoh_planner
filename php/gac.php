@@ -1050,10 +1050,10 @@ function displayCharacters() {
         const clickHandler = isUsedInDefense ? '' : `onclick="toggleCharacterSafe('${safeId}', '${safeName}', '${safeImage}')"`;
         const cursorStyle = isUsedInDefense ? 'cursor: not-allowed;' : '';
         
-        // Create location text for badge
+        // Create location text for badge (just territory name, no team number)
         let locationText = 'Used';
         if (usedLocation) {
-            locationText = `${usedLocation.territory} T${usedLocation.team}`;
+            locationText = usedLocation.territory;
         }
         
         return `
