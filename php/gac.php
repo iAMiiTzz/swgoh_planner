@@ -1172,11 +1172,15 @@ function getUsedFleetShips(excludeTerritory, excludeSlot) {
     const format = document.getElementById('format').value;
     const config = GAC_CONFIG[league][format];
     
+    // Determine if we're editing defense or offense based on territoryOrSlot
+    // Defense Top Back is index 0, Offense Top Back is index 1 (but displays as "Top Back" due to name swap)
+    const isDefense = excludeTerritory === 0;
+    
     // Check defense Top Back (index 0)
-    const defenseFleetCount = config.territories[0].maxFleetTeams || 0;
+    const defenseFleetCount = config.maxFleetTeams || 0;
     for (let i = 0; i < defenseFleetCount; i++) {
-        // Skip the current team being edited
-        if (excludeTerritory === 0 && excludeSlot === i) {
+        // Skip the current team being edited (only if editing defense)
+        if (isDefense && excludeSlot === i) {
             continue;
         }
         
@@ -1206,11 +1210,11 @@ function getUsedFleetShips(excludeTerritory, excludeSlot) {
         }
     }
     
-    // Check offense Top Back (index 1)
-    const offenseFleetCount = config.territories[1].maxFleetTeams || 0;
+    // Check offense Top Back
+    const offenseFleetCount = config.maxFleetTeams || 0;
     for (let i = 0; i < offenseFleetCount; i++) {
-        // Skip the current team being edited
-        if (excludeTerritory === 1 && excludeSlot === i) {
+        // Skip the current team being edited (only if editing offense)
+        if (!isDefense && excludeSlot === i) {
             continue;
         }
         
