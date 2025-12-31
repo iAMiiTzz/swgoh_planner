@@ -265,15 +265,17 @@
 }
 
 .character-item.selected-leader {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border-color: #fbbf24;
-    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
+    background: #fff5f5;
+    border: 3px solid #e53e3e;
+    border-radius: 8px;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
 }
 
 .character-item.selected-member {
-    background: linear-gradient(135deg, #e6f3ff 0%, #d6e8ff 100%);
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    background: #fff5f5;
+    border: 3px solid #e53e3e;
+    border-radius: 8px;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
 }
 
 .character-item.used-item {
@@ -365,12 +367,13 @@
 }
 
 .character-item.selected-leader img {
-    border-color: #fbbf24;
-    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
 }
 
 .character-item.selected-member img {
-    border-color: var(--primary-color);
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
 }
 
 .character-item .character-name {
