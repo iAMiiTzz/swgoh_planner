@@ -276,22 +276,49 @@
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
-.character-item.used-in-defense {
-    background: #f7fafc;
-    border-color: #cbd5e0;
-    opacity: 0.6;
+.character-item.used-item {
+    background: #fff5f5;
+    border: 3px solid #e53e3e;
+    border-radius: 8px;
+    opacity: 0.8;
     position: relative;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
+}
+
+.character-item.used-item:hover {
+    background: #fff5f5;
+    border-color: #e53e3e;
+    transform: none;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
+    cursor: not-allowed;
+}
+
+.character-item.used-item img {
+    filter: grayscale(50%);
+    opacity: 0.7;
+}
+
+/* Keep backward compatibility for old class name */
+.character-item.used-in-defense {
+    background: #fff5f5;
+    border: 3px solid #e53e3e;
+    border-radius: 8px;
+    opacity: 0.8;
+    position: relative;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
 }
 
 .character-item.used-in-defense:hover {
-    background: #f7fafc;
-    border-color: #cbd5e0;
+    background: #fff5f5;
+    border-color: #e53e3e;
     transform: none;
-    box-shadow: none;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
+    cursor: not-allowed;
 }
 
 .character-item.used-in-defense img {
-    filter: grayscale(100%);
+    filter: grayscale(50%);
+    opacity: 0.7;
 }
 
 .used-badge {

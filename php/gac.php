@@ -1599,9 +1599,9 @@ function displayCharacters() {
         let statusClass = '';
         if (isLeader) statusClass = 'selected-leader';
         else if (isMember) statusClass = 'selected-member';
-        else if (isUsed && currentTeamContext && currentTeamContext.type === 'defense') {
-            // Only show "used" styling for defense characters, not fleet ships
-            statusClass = 'used-in-defense';
+        else if (isUsed) {
+            // Show "used" styling for both defense characters and fleet ships
+            statusClass = 'used-item';
         }
         
         // Disable clicking if used (for both defense and fleet)
