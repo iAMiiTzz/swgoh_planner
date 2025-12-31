@@ -467,23 +467,6 @@ function generateOffenseTerritories(territories) {
     });
 }
 
-function generateFleetTeams(maxTeams) {
-    const container = document.getElementById('fleetTeams');
-    container.innerHTML = '';
-    
-    for (let i = 0; i < maxTeams; i++) {
-        const teamDiv = document.createElement('div');
-        teamDiv.className = 'team-slot';
-        teamDiv.innerHTML = `
-            <button type="button" class="team-select-button" onclick="openCharacterModal('fleet', ${i})">
-                <div class="team-characters-display" id="fleet-${i}">
-                    <span class="team-select-placeholder">Select Fleet Team ${i + 1}</span>
-                </div>
-            </button>
-        `;
-        container.appendChild(teamDiv);
-    }
-}
 
 function updateCounts() {
     const league = document.getElementById('league').value;
@@ -1544,21 +1527,25 @@ function confirmCharacterSelection() {
             if (selectedLeader) allCharacters.push(selectedLeader);
             allCharacters.push(...selectedMembers);
             
-            allCharacters.forEach(char => {
-                const img = document.createElement('img');
-                img.className = 'character-image';
-                img.src = char.image;
-                img.alt = char.name;
-                img.dataset.characterId = char.id;
-                img.dataset.characterName = char.name;
-                img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                img.title = char.name + ' - Click to edit';
-                img.style.cursor = 'pointer';
-                img.onclick = function() {
-                    openCharacterModal(type, territory, slot);
-                };
-                display.appendChild(img);
-            });
+            if (allCharacters.length === 0) {
+                display.innerHTML = '<span class="team-select-placeholder">Select Fleet</span>';
+            } else {
+                allCharacters.forEach(char => {
+                    const img = document.createElement('img');
+                    img.className = 'character-image';
+                    img.src = char.image;
+                    img.alt = char.name;
+                    img.dataset.characterId = char.id;
+                    img.dataset.characterName = char.name;
+                    img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                    img.title = char.name + ' - Click to edit';
+                    img.style.cursor = 'pointer';
+                    img.onclick = function() {
+                        openCharacterModal(type, territory, slot);
+                    };
+                    display.appendChild(img);
+                });
+            }
         }
     } else {
         // Character teams need leader + members structure
