@@ -85,7 +85,7 @@ require_once 'includes/header.php';
                     <div class="selected-leader-section">
                         <div class="selected-label">
                             <span class="leader-icon">👑</span>
-                            Leader <span class="required-badge">Required</span>
+                            <span id="leaderLabel">Leader</span> <span class="required-badge">Required</span>
                         </div>
                         <div id="selectedLeader" class="selected-leader-container">
                             <span class="empty-state">No leader selected</span>
@@ -94,7 +94,7 @@ require_once 'includes/header.php';
                     <div class="selected-members-section">
                         <div class="selected-label">
                             <span class="members-icon">⚔️</span>
-                            Members
+                            <span id="membersLabel">Members</span>
                         </div>
                         <div id="selectedMembers" class="selected-members-container">
                             <span class="empty-state">No members selected</span>
