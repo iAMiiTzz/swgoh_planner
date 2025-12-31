@@ -1163,6 +1163,85 @@ let filteredCharacters = [];
 let selectedLeader = null;
 let selectedMembers = [];
 let usedDefenseCharacters = new Map(); // Track characters already used in defense: characterId -> {territory: string, team: number}
+let usedFleetShips = new Map(); // Track ships already used in fleet teams: shipId -> {territory: string, team: number}
+
+// Get all ships currently used in fleet teams (excluding current team)
+function getUsedFleetShips(excludeTerritory, excludeSlot) {
+    const used = new Map();
+    const league = document.getElementById('league').value;
+    const format = document.getElementById('format').value;
+    const config = GAC_CONFIG[league][format];
+    
+    // Check defense Top Back (index 0)
+    const defenseFleetCount = config.territories[0].maxFleetTeams || 0;
+    for (let i = 0; i < defenseFleetCount; i++) {
+        // Skip the current team being edited
+        if (excludeTerritory === 0 && excludeSlot === i) {
+            continue;
+        }
+        
+        const display = document.getElementById(`fleet-defense-${i}`);
+        if (display) {
+            const teamNumber = i + 1;
+            
+            // Get leader (Capital ship)
+            const leaderImg = display.querySelector('.character-image.leader');
+            if (leaderImg && leaderImg.dataset.characterId) {
+                used.set(leaderImg.dataset.characterId, {
+                    territory: 'Top Back (Defense)',
+                    team: teamNumber
+                });
+            }
+            
+            // Get members (regular ships)
+            const memberImgs = display.querySelectorAll('.character-image.member');
+            memberImgs.forEach(img => {
+                if (img.dataset.characterId) {
+                    used.set(img.dataset.characterId, {
+                        territory: 'Top Back (Defense)',
+                        team: teamNumber
+                    });
+                }
+            });
+        }
+    }
+    
+    // Check offense Top Back (index 1)
+    const offenseFleetCount = config.territories[1].maxFleetTeams || 0;
+    for (let i = 0; i < offenseFleetCount; i++) {
+        // Skip the current team being edited
+        if (excludeTerritory === 1 && excludeSlot === i) {
+            continue;
+        }
+        
+        const display = document.getElementById(`fleet-offense-${i}`);
+        if (display) {
+            const teamNumber = i + 1;
+            
+            // Get leader (Capital ship)
+            const leaderImg = display.querySelector('.character-image.leader');
+            if (leaderImg && leaderImg.dataset.characterId) {
+                used.set(leaderImg.dataset.characterId, {
+                    territory: 'Top Back (Offense)',
+                    team: teamNumber
+                });
+            }
+            
+            // Get members (regular ships)
+            const memberImgs = display.querySelectorAll('.character-image.member');
+            memberImgs.forEach(img => {
+                if (img.dataset.characterId) {
+                    used.set(img.dataset.characterId, {
+                        territory: 'Top Back (Offense)',
+                        team: teamNumber
+                    });
+                }
+            });
+        }
+    }
+    
+    return used;
+}
 
 // Get all characters currently used in defense territories (excluding current team)
 function getUsedDefenseCharacters(excludeTerritory, excludeSlot) {
@@ -1231,13 +1310,16 @@ function openCharacterModal(type, territoryOrSlot, slot = null) {
         selectedMembers = [];
         
         // If editing defense, get characters already used in other defense teams
-        // Fleet teams don't need duplicate checking
+        // If editing fleet, get ships already used in other fleet teams
         if (type === 'defense') {
             usedDefenseCharacters = getUsedDefenseCharacters(territoryOrSlot, slot);
+            usedFleetShips = new Map(); // Not needed for character teams
         } else if (type === 'fleet') {
-            usedDefenseCharacters = new Map(); // No duplicate checking for fleet
+            usedDefenseCharacters = new Map(); // Not needed for fleet teams
+            usedFleetShips = getUsedFleetShips(territoryOrSlot, slot);
         } else {
             usedDefenseCharacters = new Map();
+            usedFleetShips = new Map();
         }
         
         // Load existing characters if any
@@ -1489,9 +1571,21 @@ function displayCharacters() {
         const isLeader = selectedLeader && selectedLeader.id === baseId;
         const isMember = selectedMembers.some(c => c.id === baseId);
         
-        // Check if character is already used in defense (only for defense teams)
-        const usedLocation = currentTeamContext && currentTeamContext.type === 'defense' ? usedDefenseCharacters.get(baseId) : null;
-        const isUsedInDefense = usedLocation !== null && usedLocation !== undefined;
+        // Check if character/ship is already used
+        let usedLocation = null;
+        let isUsed = false;
+        
+        if (currentTeamContext) {
+            if (currentTeamContext.type === 'defense') {
+                // For defense teams, check if character is used in other defense teams
+                usedLocation = usedDefenseCharacters.get(baseId);
+                isUsed = usedLocation !== null && usedLocation !== undefined;
+            } else if (currentTeamContext.type === 'fleet') {
+                // For fleet teams, check if ship is used in other fleet teams (no badge shown)
+                usedLocation = usedFleetShips.get(baseId);
+                isUsed = usedLocation !== null && usedLocation !== undefined;
+            }
+        }
         
         // Escape single quotes for onclick
         const safeName = charName.replace(/'/g, "\\'");
@@ -1501,14 +1595,18 @@ function displayCharacters() {
         let statusClass = '';
         if (isLeader) statusClass = 'selected-leader';
         else if (isMember) statusClass = 'selected-member';
-        else if (isUsedInDefense) statusClass = 'used-in-defense';
+        else if (isUsed && currentTeamContext && currentTeamContext.type === 'defense') {
+            // Only show "used" styling for defense characters, not fleet ships
+            statusClass = 'used-in-defense';
+        }
         
-        const clickHandler = isUsedInDefense ? '' : `onclick="toggleCharacterSafe('${safeId}', '${safeName}', '${safeImage}')"`;
-        const cursorStyle = isUsedInDefense ? 'cursor: not-allowed;' : '';
+        // Disable clicking if used (for both defense and fleet)
+        const clickHandler = isUsed ? '' : `onclick="toggleCharacterSafe('${safeId}', '${safeName}', '${safeImage}')"`;
+        const cursorStyle = isUsed ? 'cursor: not-allowed;' : '';
         
-        // Create location text for badge (just territory name, no team number)
+        // Create location text for badge (only for defense characters, not fleet ships)
         let locationText = 'Used';
-        if (usedLocation) {
+        if (usedLocation && currentTeamContext && currentTeamContext.type === 'defense') {
             locationText = usedLocation.territory;
         }
         
@@ -1517,7 +1615,7 @@ function displayCharacters() {
                 <img src="${imageUrl}" alt="${charName}" onerror="this.src='https://via.placeholder.com/80?text=?'" />
                 <div class="character-name">${charName}</div>
                 ${isLeader ? '<div class="character-badge leader-badge">Leader</div>' : ''}
-                ${isUsedInDefense ? `<div class="character-badge used-badge" title="Used in ${usedLocation.territory}, Team ${usedLocation.team}">${locationText}</div>` : ''}
+                ${isUsed && currentTeamContext && currentTeamContext.type === 'defense' ? `<div class="character-badge used-badge" title="Used in ${usedLocation.territory}, Team ${usedLocation.team}">${locationText}</div>` : ''}
             </div>
         `;
     }).join('');
@@ -1535,6 +1633,18 @@ function toggleCharacterSafe(baseId, name, image) {
 function toggleCharacter(character) {
     // Fleet teams: leader must be Capital, members must be regular ships
     if (currentTeamContext && currentTeamContext.type === 'fleet') {
+        // Check if ship is already used in another fleet team
+        const usedLocation = usedFleetShips.get(character.base_id);
+        if (usedLocation) {
+            // Check if it's not already in the current selection
+            const isInCurrentSelection = (selectedLeader && selectedLeader.id === character.base_id) ||
+                                        selectedMembers.some(c => c.id === character.base_id);
+            if (!isInCurrentSelection) {
+                alert(`${character.name} is already used in ${usedLocation.territory}, Team ${usedLocation.team}. Each ship can only be used once across all fleet teams.`);
+                return;
+            }
+        }
+        
         // Find the full character data from allCharacters to check ship type
         const fullChar = allCharacters.find(c => {
             const charId = c.base_id || c.id || '';
