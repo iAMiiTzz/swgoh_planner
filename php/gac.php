@@ -383,11 +383,21 @@ function generateOffenseTerritories(territories) {
     const container = document.getElementById('offenseTerritories');
     container.innerHTML = '';
     
+    // Map offense territory names (swap Top Front/Top Back and Bottom Back/Bottom Front)
+    const offenseTerritoryNames = {
+        'Top Back': 'Top Front',
+        'Top Front': 'Top Back',
+        'Bottom Back': 'Bottom Front',
+        'Bottom Front': 'Bottom Back'
+    };
+    
     territories.forEach((territory, index) => {
         const territoryDiv = document.createElement('div');
         territoryDiv.className = 'territory-card';
+        // Use swapped name for offense
+        const displayName = offenseTerritoryNames[territory.name] || territory.name;
         territoryDiv.innerHTML = `
-            <h4>${territory.name}</h4>
+            <h4>${displayName}</h4>
             <div class="territory-teams" data-territory="${index}">
                 ${Array(territory.maxTeams).fill(0).map((_, i) => `
                     <div class="team-slot" data-territory="${index}" data-slot="${i}">
@@ -490,6 +500,13 @@ function collectPlanData() {
     
     // Collect offense teams by territory
     const offenseTeams = [];
+    // Map offense territory names (swap Top Front/Top Back and Bottom Back/Bottom Front)
+    const offenseTerritoryNames = {
+        'Top Back': 'Top Front',
+        'Top Front': 'Top Back',
+        'Bottom Back': 'Bottom Front',
+        'Bottom Front': 'Bottom Back'
+    };
     config.territories.forEach((territory, tIndex) => {
         const teams = [];
         for (let i = 0; i < territory.maxTeams; i++) {
@@ -515,8 +532,10 @@ function collectPlanData() {
                 }
             }
         }
+        // Use swapped name for offense when saving
+        const displayName = offenseTerritoryNames[territory.name] || territory.name;
         offenseTeams.push({
-            territory: territory.name,
+            territory: displayName,
             teams: teams
         });
     });
