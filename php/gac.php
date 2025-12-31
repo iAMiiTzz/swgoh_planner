@@ -792,6 +792,7 @@ let allCharacters = [];
 let filteredCharacters = [];
 let selectedLeader = null;
 let selectedMembers = [];
+let usedDefenseCharacters = new Set(); // Track characters already used in defense
 
 function openCharacterModal(type, territoryOrSlot, slot = null) {
     console.log('openCharacterModal called', type, territoryOrSlot, slot);
@@ -967,6 +968,9 @@ function displayCharacters() {
         const isLeader = selectedLeader && selectedLeader.id === baseId;
         const isMember = selectedMembers.some(c => c.id === baseId);
         
+        // Check if character is already used in defense (only for defense teams)
+        const isUsedInDefense = currentTeamContext && currentTeamContext.type === 'defense' && usedDefenseCharacters.has(baseId);
+        
         // Escape single quotes for onclick
         const safeName = charName.replace(/'/g, "\\'");
         const safeImage = imageUrl.replace(/'/g, "\\'");
@@ -975,12 +979,17 @@ function displayCharacters() {
         let statusClass = '';
         if (isLeader) statusClass = 'selected-leader';
         else if (isMember) statusClass = 'selected-member';
+        else if (isUsedInDefense) statusClass = 'used-in-defense';
+        
+        const clickHandler = isUsedInDefense ? '' : `onclick="toggleCharacterSafe('${safeId}', '${safeName}', '${safeImage}')"`;
+        const cursorStyle = isUsedInDefense ? 'cursor: not-allowed;' : '';
         
         return `
-            <div class="character-item ${statusClass}" onclick="toggleCharacterSafe('${safeId}', '${safeName}', '${safeImage}')">
+            <div class="character-item ${statusClass}" ${clickHandler} style="${cursorStyle}">
                 <img src="${imageUrl}" alt="${charName}" onerror="this.src='https://via.placeholder.com/80?text=?'" />
                 <div class="character-name">${charName}</div>
                 ${isLeader ? '<div class="character-badge leader-badge">Leader</div>' : ''}
+                ${isUsedInDefense ? '<div class="character-badge used-badge">Used</div>' : ''}
             </div>
         `;
     }).join('');
@@ -998,6 +1007,19 @@ function toggleCharacterSafe(baseId, name, image) {
 function toggleCharacter(character) {
     const format = document.getElementById('format').value;
     const maxMembers = format === '5v5' ? 4 : 2;
+    
+    // Check if character is already used in defense (only for defense teams)
+    if (currentTeamContext && currentTeamContext.type === 'defense') {
+        if (usedDefenseCharacters.has(character.base_id)) {
+            // Check if it's not already in the current selection
+            const isInCurrentSelection = (selectedLeader && selectedLeader.id === character.base_id) ||
+                                        selectedMembers.some(c => c.id === character.base_id);
+            if (!isInCurrentSelection) {
+                alert(`${character.name} is already used in another defense territory. Each character can only be used once in defense.`);
+                return;
+            }
+        }
+    }
     
     // Check if it's already the leader
     if (selectedLeader && selectedLeader.id === character.base_id) {
