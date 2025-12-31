@@ -245,10 +245,24 @@ let currentPlan = {
     notes: ''
 };
 
+let autoSaveTimer = null;
+let isAutoSaving = false;
+let lastSavedData = null;
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Load most recent plan automatically
+    loadMostRecentPlan();
+    
+    // Set up auto-save listeners
+    document.getElementById('planName').addEventListener('input', autoSave);
+    document.getElementById('planName').addEventListener('change', autoSave);
+    document.getElementById('notes').addEventListener('input', autoSave);
+    document.getElementById('notes').addEventListener('change', autoSave);
+    
     document.getElementById('league').addEventListener('change', function() {
         updateLayout();
+        autoSave();
         // Clear any open modal selections when format/league changes
         if (currentTeamContext) {
             selectedLeader = null;
@@ -258,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.getElementById('format').addEventListener('change', function() {
         updateLayout();
+        autoSave();
         // Update member limit if modal is open
         if (currentTeamContext) {
             updateMemberLimit();
@@ -272,6 +287,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     updateLayout();
 });
+
+function loadMostRecentPlan() {
+    api.gac.getAll()
+        .then(plans => {
+            if (plans.length > 0) {
+                // Sort by updated_at descending and get the most recent
+                plans.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+                const mostRecent = plans[0];
+                loadPlanData(mostRecent);
+                lastSavedData = JSON.stringify(collectPlanData());
+            } else {
+                // No plans exist, create a default one
+                const defaultPlanName = 'My GAC Plan';
+                document.getElementById('planName').value = defaultPlanName;
+                // Save it after a short delay to ensure everything is initialized
+                setTimeout(() => {
+                    savePlan(false).then(() => {
+                        lastSavedData = JSON.stringify(collectPlanData());
+                    });
+                }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading most recent plan:', error);
+            // If error, still try to create a default plan
+            const defaultPlanName = 'My GAC Plan';
+            document.getElementById('planName').value = defaultPlanName;
+            setTimeout(() => {
+                savePlan(false).then(() => {
+                    lastSavedData = JSON.stringify(collectPlanData());
+                });
+            }, 1000);
+        });
+}
 
 function updateLayout() {
     const league = document.getElementById('league').value;
@@ -489,26 +538,83 @@ function collectPlanData() {
     };
 }
 
-function savePlan() {
+function savePlan(showMessage = true) {
     const planData = collectPlanData();
     
-    if (!planData.plan_name) {
-        alert('Please enter a plan name');
-        return;
+    // Ensure plan has a name
+    if (!planData.plan_name || planData.plan_name.trim() === '') {
+        planData.plan_name = 'Untitled Plan';
     }
+    
+    // Check if data has actually changed
+    const dataString = JSON.stringify(planData);
+    if (lastSavedData === dataString) {
+        return Promise.resolve(); // No changes, skip save
+    }
+    
+    isAutoSaving = true;
+    updateSaveStatus('Saving...');
     
     const savePromise = currentPlan.id 
         ? api.gac.update(currentPlan.id, planData)
         : api.gac.create(planData);
     
-    savePromise
+    return savePromise
         .then(data => {
             if (data.id) currentPlan.id = data.id;
-            showSuccess(data.message || 'Plan saved successfully');
+            lastSavedData = dataString;
+            isAutoSaving = false;
+            updateSaveStatus('Saved');
+            if (showMessage) {
+                showSuccess(data.message || 'Plan saved successfully');
+            }
+            // Clear status after 2 seconds
+            setTimeout(() => {
+                updateSaveStatus('');
+            }, 2000);
+            return data;
         })
         .catch(error => {
-            alert('Error saving plan: ' + (error.message || error));
+            isAutoSaving = false;
+            updateSaveStatus('Error saving');
+            if (showMessage) {
+                alert('Error saving plan: ' + (error.message || error));
+            }
+            console.error('Auto-save error:', error);
+            throw error;
         });
+}
+
+function autoSave() {
+    // Clear existing timer
+    if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
+    }
+    
+    // Set new timer (debounce: wait 2 seconds after last change)
+    autoSaveTimer = setTimeout(() => {
+        if (!isAutoSaving) {
+            savePlan(false).catch(() => {
+                // Error already handled in savePlan
+            });
+        }
+    }, 2000);
+}
+
+function updateSaveStatus(message) {
+    const statusElement = document.getElementById('saveStatus');
+    if (statusElement) {
+        statusElement.textContent = message;
+        if (message === 'Saved') {
+            statusElement.style.color = '#38a169';
+        } else if (message === 'Saving...') {
+            statusElement.style.color = '#667eea';
+        } else if (message === 'Error saving') {
+            statusElement.style.color = '#e53e3e';
+        } else {
+            statusElement.style.color = '';
+        }
+    }
 }
 
 function loadPlan() {
@@ -1255,6 +1361,9 @@ function confirmCharacterSelection() {
     
     updateCounts();
     closeCharacterModal();
+    
+    // Auto-save after team selection
+    autoSave();
 }
 
 // Search functionality - wait for DOM to be ready
