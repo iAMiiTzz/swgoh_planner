@@ -248,6 +248,7 @@ let currentPlan = {
 let autoSaveTimer = null;
 let isAutoSaving = false;
 let lastSavedData = null;
+let isInitialLoad = true;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -305,9 +306,14 @@ function loadMostRecentPlan() {
                 setTimeout(() => {
                     savePlan(false).then(() => {
                         lastSavedData = JSON.stringify(collectPlanData());
+                        isInitialLoad = false; // Enable auto-save after initial save
                     });
                 }, 1000);
             }
+            // Enable auto-save after loading is complete
+            setTimeout(() => {
+                isInitialLoad = false;
+            }, 1500);
         })
         .catch(error => {
             console.error('Error loading most recent plan:', error);
@@ -317,6 +323,7 @@ function loadMostRecentPlan() {
             setTimeout(() => {
                 savePlan(false).then(() => {
                     lastSavedData = JSON.stringify(collectPlanData());
+                    isInitialLoad = false; // Enable auto-save after initial save
                 });
             }, 1000);
         });
@@ -589,6 +596,11 @@ function savePlan(showMessage = true) {
 }
 
 function autoSave() {
+    // Don't auto-save during initial load
+    if (isInitialLoad) {
+        return;
+    }
+    
     // Clear existing timer
     if (autoSaveTimer) {
         clearTimeout(autoSaveTimer);
