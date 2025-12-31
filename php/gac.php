@@ -1325,6 +1325,45 @@ function loadCharacters() {
         });
 }
 
+// Helper function to check if a unit is a ship
+function isShip(char) {
+    if (!char) return false;
+    const combatType = char.combat_type;
+    const category = char.category || char.unit_category;
+    const baseId = (char.base_id || char.id || '').toUpperCase();
+    
+    return combatType === 2 || 
+           category === 'ship' || 
+           category === 'SHIP' ||
+           baseId.includes('SHIP') ||
+           baseId.includes('CAPITAL');
+}
+
+// Helper function to check if a ship is a Capital ship
+function isCapitalShip(char) {
+    if (!isShip(char)) return false;
+    const baseId = (char.base_id || char.id || '').toUpperCase();
+    const name = (char.name || char.unit_name || '').toUpperCase();
+    
+    // Capital ships typically have CAPITAL in their ID or are specific capital ships
+    return baseId.includes('CAPITAL') ||
+           baseId.includes('EXECUTOR') ||
+           baseId.includes('PROFUNDITY') ||
+           baseId.includes('NEGOTIATOR') ||
+           baseId.includes('HOMEONE') ||
+           baseId.includes('CHIMAERA') ||
+           baseId.includes('RAVAGER') ||
+           baseId.includes('MALEVOLENCE') ||
+           name.includes('CAPITAL') ||
+           name.includes('EXECUTOR') ||
+           name.includes('PROFUNDITY') ||
+           name.includes('NEGOTIATOR') ||
+           name.includes('HOME ONE') ||
+           name.includes('CHIMAERA') ||
+           name.includes('RAVAGER') ||
+           name.includes('MALEVOLENCE');
+}
+
 function displayCharacters() {
     const grid = document.getElementById('characterGrid');
     if (!grid) {
@@ -1343,19 +1382,16 @@ function displayCharacters() {
         
         // If selecting fleet, only show ships
         if (isFleetSelection) {
-            // Ships typically have combat_type === 2, or category === 'ship', or base_id contains 'SHIP'
-            const combatType = char.combat_type;
-            const category = char.category || char.unit_category;
-            const baseId = (char.base_id || char.id || '').toUpperCase();
+            if (!isShip(char)) return false;
             
-            // Check if it's a ship
-            const isShip = combatType === 2 || 
-                          category === 'ship' || 
-                          category === 'SHIP' ||
-                          baseId.includes('SHIP') ||
-                          baseId.includes('CAPITAL');
-            
-            if (!isShip) return false;
+            // If no leader selected, only show Capital ships
+            if (!selectedLeader) {
+                return isCapitalShip(char);
+            }
+            // If leader is selected, only show regular ships (not capitals)
+            else {
+                return !isCapitalShip(char);
+            }
         }
         
         const name = char.name || char.unit_name || '';
@@ -1421,23 +1457,50 @@ function toggleCharacterSafe(baseId, name, image) {
 }
 
 function toggleCharacter(character) {
-    // Fleet teams don't need leader/member structure - just add/remove from list
+    // Fleet teams: leader must be Capital, members must be regular ships
     if (currentTeamContext && currentTeamContext.type === 'fleet') {
+        const isCapital = isCapitalShip(character);
+        const isRegularShip = isShip(character) && !isCapital;
+        
         // Check if already selected
         const isLeader = selectedLeader && selectedLeader.id === character.base_id;
         const isMember = selectedMembers.some(c => c.id === character.base_id);
         
         if (isLeader) {
+            // Remove leader
             selectedLeader = null;
         } else if (isMember) {
+            // Remove member
             selectedMembers = selectedMembers.filter(c => c.id !== character.base_id);
         } else {
-            // Add to members (fleet doesn't need leader, but we'll use members array)
-            selectedMembers.push({
-                id: character.base_id,
-                name: character.name,
-                image: character.image || `https://swgoh.gg/static/img/assets/tex.char_${character.base_id}.png`
-            });
+            // Add new selection
+            if (!selectedLeader) {
+                // First selection must be a Capital ship
+                if (!isCapital) {
+                    alert('Please select a Capital ship as the fleet leader first.');
+                    return;
+                }
+                selectedLeader = {
+                    id: character.base_id,
+                    name: character.name,
+                    image: character.image || `https://swgoh.gg/static/img/assets/tex.char_${character.base_id}.png`
+                };
+            } else {
+                // Subsequent selections must be regular ships (not capitals)
+                if (isCapital) {
+                    alert('Only one Capital ship is allowed per fleet. Please select a regular ship.');
+                    return;
+                }
+                if (!isRegularShip) {
+                    alert('Please select a ship (not a character).');
+                    return;
+                }
+                selectedMembers.push({
+                    id: character.base_id,
+                    name: character.name,
+                    image: character.image || `https://swgoh.gg/static/img/assets/tex.char_${character.base_id}.png`
+                });
+            }
         }
         updateSelectedList();
         displayCharacters();
@@ -1499,16 +1562,24 @@ function updateSelectedList() {
     const leaderDiv = document.getElementById('selectedLeader');
     const membersDiv = document.getElementById('selectedMembers');
     
-    // Fleet teams don't need leader/member distinction
+    // Fleet teams: show Capital ship as leader, regular ships as members
     if (currentTeamContext && currentTeamContext.type === 'fleet') {
-        // Hide leader section for fleet, show all in members
-        leaderDiv.innerHTML = '';
-        const allFleetChars = [];
-        if (selectedLeader) allFleetChars.push(selectedLeader);
-        allFleetChars.push(...selectedMembers);
+        // Show Capital ship (leader)
+        if (selectedLeader) {
+            leaderDiv.innerHTML = `
+                <div class="selected-character leader-character">
+                    <img src="${selectedLeader.image}" alt="${selectedLeader.name}" onerror="this.src='https://via.placeholder.com/40?text=?'" />
+                    <span>${selectedLeader.name} (Capital)</span>
+                    <button type="button" onclick="removeLeader()">×</button>
+                </div>
+            `;
+        } else {
+            leaderDiv.innerHTML = '<span class="empty-state">No Capital ship selected</span>';
+        }
         
-        if (allFleetChars.length > 0) {
-            membersDiv.innerHTML = allFleetChars.map(char => `
+        // Show regular ships (members)
+        if (selectedMembers.length > 0) {
+            membersDiv.innerHTML = selectedMembers.map(char => `
                 <div class="selected-character">
                     <img src="${char.image}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/40?text=?'" />
                     <span>${char.name}</span>
@@ -1581,8 +1652,35 @@ function confirmCharacterSelection() {
     
     const { type, territory, slot } = currentTeamContext;
     
-    // Fleet teams don't need leader/member structure - just a list of characters
+    // Fleet teams: leader (Capital) + members (regular ships)
     if (type === 'fleet') {
+        // Validate fleet composition
+        if (!selectedLeader) {
+            alert('Please select a Capital ship as the fleet leader');
+            return;
+        }
+        
+        // Validate that leader is a Capital ship
+        const leaderIsCapital = isCapitalShip({ base_id: selectedLeader.id, name: selectedLeader.name });
+        if (!leaderIsCapital) {
+            alert('The fleet leader must be a Capital ship');
+            return;
+        }
+        
+        // Validate that all members are regular ships (not capitals)
+        for (let member of selectedMembers) {
+            const memberIsCapital = isCapitalShip({ base_id: member.id, name: member.name });
+            if (memberIsCapital) {
+                alert('Only one Capital ship is allowed per fleet. Please remove the Capital ship from members.');
+                return;
+            }
+            const memberIsShip = isShip({ base_id: member.id, name: member.name });
+            if (!memberIsShip) {
+                alert('All fleet members must be ships');
+                return;
+            }
+        }
+        
         const isDefense = territory === 0; // Top Back defense is index 0
         const displayId = isDefense ? `fleet-defense-${slot}` : `fleet-offense-${slot}`;
         const display = document.getElementById(displayId);
@@ -1590,29 +1688,41 @@ function confirmCharacterSelection() {
         if (display) {
             display.innerHTML = '';
             
-            // Combine leader and members for fleet (no distinction)
-            const allCharacters = [];
-            if (selectedLeader) allCharacters.push(selectedLeader);
-            allCharacters.push(...selectedMembers);
+            // Display Capital ship (leader) first, then regular ships (members)
+            if (selectedLeader) {
+                const leaderImg = document.createElement('img');
+                leaderImg.className = 'character-image leader';
+                leaderImg.src = selectedLeader.image;
+                leaderImg.alt = selectedLeader.name;
+                leaderImg.dataset.characterId = selectedLeader.id;
+                leaderImg.dataset.characterName = selectedLeader.name;
+                leaderImg.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                leaderImg.title = selectedLeader.name + ' (Capital) - Click to edit';
+                leaderImg.style.cursor = 'pointer';
+                leaderImg.onclick = function() {
+                    openCharacterModal(type, territory, slot);
+                };
+                display.appendChild(leaderImg);
+            }
             
-            if (allCharacters.length === 0) {
+            selectedMembers.forEach(char => {
+                const img = document.createElement('img');
+                img.className = 'character-image member';
+                img.src = char.image;
+                img.alt = char.name;
+                img.dataset.characterId = char.id;
+                img.dataset.characterName = char.name;
+                img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
+                img.title = char.name + ' - Click to edit';
+                img.style.cursor = 'pointer';
+                img.onclick = function() {
+                    openCharacterModal(type, territory, slot);
+                };
+                display.appendChild(img);
+            });
+            
+            if (!selectedLeader && selectedMembers.length === 0) {
                 display.innerHTML = '<span class="team-select-placeholder">Select Fleet</span>';
-            } else {
-                allCharacters.forEach(char => {
-                    const img = document.createElement('img');
-                    img.className = 'character-image';
-                    img.src = char.image;
-                    img.alt = char.name;
-                    img.dataset.characterId = char.id;
-                    img.dataset.characterName = char.name;
-                    img.onerror = function() { this.src = 'https://via.placeholder.com/50?text=?'; };
-                    img.title = char.name + ' - Click to edit';
-                    img.style.cursor = 'pointer';
-                    img.onclick = function() {
-                        openCharacterModal(type, territory, slot);
-                    };
-                    display.appendChild(img);
-                });
             }
         }
     } else {
