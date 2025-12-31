@@ -1691,6 +1691,12 @@ function toggleCharacter(character) {
                     alert('Please select a ship (not a character).');
                     return;
                 }
+                // Limit fleet members to 4 ships
+                const maxFleetMembers = 4;
+                if (selectedMembers.length >= maxFleetMembers) {
+                    alert(`Maximum ${maxFleetMembers} ships allowed per fleet team.`);
+                    return;
+                }
                 selectedMembers.push({
                     id: character.base_id,
                     name: character.name,
@@ -1867,6 +1873,13 @@ function confirmCharacterSelection() {
                 alert('The fleet leader must be a Capital ship');
                 return;
             }
+        }
+        
+        // Validate fleet member count (max 4 ships)
+        const maxFleetMembers = 4;
+        if (selectedMembers.length > maxFleetMembers) {
+            alert(`Maximum ${maxFleetMembers} ships allowed per fleet team. Please remove excess ships.`);
+            return;
         }
         
         // Validate that all members are regular ships (not capitals) - look up full character data
